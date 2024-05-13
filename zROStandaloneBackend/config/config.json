@@ -1,0 +1,21 @@
+{
+  "LootChanges": {
+    "EnableLootOptions": false,
+    "StaticLootMultiplier": 3,
+    "LooseLootMultiplier": 2
+  },
+
+  "Events": {
+    "EnableWeatherOptions": true,
+    "RandomizedWeather": true,
+    "WinterWonderland": false,
+    "RandomizedSeasonalEvents": true
+  },
+
+  "RaidTime": {
+    "EnableCustomRaidTimes": false,
+    "TotalTimeInMinutes": 120
+  },
+
+  "WhiteFlareCostMultiplier": 1
+}

@@ -1,0 +1,23 @@
+{
+  "DoorEvents": {
+    "_switchWeighting": 2,
+    "_doorWeighting": 10,
+    "_keycardWeighting": 1
+  },
+
+  "RaidEvents": {
+    "_damageWeighting": 4,
+    "_airdropWeighting": 16,
+    "_blackoutWeighting": 8,
+    "_jokeWeighting": 4,
+    "_healWeighting": 12,
+    "_armorWeighting": 14,
+    "_skillWeighting": 6,
+    "_metWeighting": 6,
+    "_malfWeighting": 4,
+    "_traderWeighting": 3,
+    "_berserkWeighting": 4,
+    "_weightWeightingLOL": 4,
+    "_exfilWeighting": 1
+  }
+}

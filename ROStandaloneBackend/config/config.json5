@@ -1,0 +1,28 @@
+{
+    "Raid": {
+      "ReduceFoodAndHydroDegrade": {                //The rate at which you lose Energy and Hydration. Lower is slower decay
+          "Enabled": false,
+          "EnergyDecay": 0.6,
+          "HydroDecay": 0.6
+      },
+      "EnableExtendedRaids": false,                 //Enables the raid time limit changes making raid times essentially unlimited
+      "TimeLimit": 999,                             //The raid time limit calculated in minutes
+    },
+    "LootChanges": {                                //Enables the static, marked room, and loose loot multipliers. All types of loot will be multiplied per map by whatever number you put in it's respective section
+        "EnableLootOptions": false,
+        "StaticLootMultiplier": 3,
+        "LooseLootMultiplier": 2,
+        "MarkedRoomLootMultiplier": 3
+    },
+    "Events": {
+        "EnableWeatherOptions": true,               //Enables the weather modification options. Seriously, only enable one or I'll have to bonk you...
+        "AllSeasons": false,                        //Picks a random implemented season on raid start
+        "NoWinter": false,                          //Same as above minus winter in case you find the spring/summer to winter shift too jarring
+        "SeasonalProgression": true,                //Progresses through all of the implemented seasons as you complete raids
+        "WinterWonderland": false,                  //All snow all the time baby!!!
+        "RandomizedSeasonalEvents": false,          //Casts a random number from 0-100. If it's over 85 it will start a random seasonal event
+    },
+    "Debug": {
+        "ExtraLogging": false,                      //Don't enable this unless you really like having your server console flooded with info that you don't need or care about
+    }
+}

@@ -1,12 +1,20 @@
 using System;
+using System.Reflection;
 using System.Collections.Generic;
+using HarmonyLib;
+using BepInEx.Logging;
 using Newtonsoft.Json;
-using Aki.Common.Http;
+using SPT.Common.Http;
+using EFT.Weather;
 
-namespace DJsROStandalone.Helpers
+namespace ROStandalone.Helpers
 {
     public static class Utils
     {
+        public static FieldInfo FogField;
+        public static FieldInfo LighteningThunderField;
+        public static FieldInfo RainField;
+        public static FieldInfo TemperatureField;
         public static readonly List<string> Traders = new List<string>
         {
             "54cb50c76803fa8b248b4571",     //Prapor
@@ -29,6 +37,19 @@ namespace DJsROStandalone.Helpers
             }
 
             return JsonConvert.DeserializeObject<T>(req);
+        }
+
+        public static void LogToServerConsole(string message) {
+            Plugin.Log.Log( LogLevel.Info, message);
+            RequestHandler.GetJson("/ROStandaloneBackend/LogToServer/" + message);
+        }
+
+        public static void GetWeatherFields()
+        {
+            FogField = AccessTools.Field(typeof(WeatherDebug), "Fog");
+            LighteningThunderField = AccessTools.Field(typeof(WeatherDebug), "LightningThunderProbability");
+            RainField = AccessTools.Field(typeof(WeatherDebug), "Rain");
+            TemperatureField = AccessTools.Field(typeof(WeatherDebug), "Temperature");
         }
     }
 }

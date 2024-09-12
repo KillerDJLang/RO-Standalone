@@ -4,87 +4,87 @@
     <TargetFramework>net471</TargetFramework>
     <AssemblyName>ROStandalone</AssemblyName>
     <Description>A standalone of Raid Overhaul featuring the events modified for standard raid times.</Description>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
-	<TargetSptAkiVersion>sptaki380</TargetSptAkiVersion>
+	<Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
 	<ItemGroup>
 		<Reference Include="0Harmony">
-		  <HintPath>..\..\3.8 Deps\0Harmony.dll</HintPath>
+		  <HintPath>..\..\..\..\BepInEx\core\0Harmony.dll</HintPath>
 		</Reference>
-		<Reference Include="aki-custom">
-		  <HintPath>..\..\3.8 Deps\aki-custom.dll</HintPath>
+		<Reference Include="spt-custom">
+		  <HintPath>..\..\..\..\BepInEx\plugins\spt\spt-custom.dll</HintPath>
 		</Reference>
-		<Reference Include="aki-singleplayer">
-		  <HintPath>..\..\3.8 Deps\aki-singleplayer.dll</HintPath>
+		<Reference Include="spt-singleplayer">
+		  <HintPath>..\..\..\..\BepInEx\plugins\spt\spt-singleplayer.dll</HintPath>
 		</Reference>
-		<Reference Include="Aki.Common">
-		  <HintPath>..\..\3.8 Deps\Aki.Common.dll</HintPath>
+		<Reference Include="spt-common">
+		  <HintPath>..\..\..\..\BepInEx\plugins\spt\spt-common.dll</HintPath>
 		</Reference>
-		<Reference Include="Aki.Reflection">
-		  <HintPath>..\..\3.8 Deps\Aki.Reflection.dll</HintPath>
+		<Reference Include="spt-reflection">
+		  <HintPath>..\..\..\..\BepInEx\plugins\spt\spt-reflection.dll</HintPath>
 		</Reference>
 		<Reference Include="AnimationSystem.Types">
-		  <HintPath>..\..\3.8 Deps\AnimationSystem.Types.dll</HintPath>
+		  <HintPath>..\..\..\Managed\AnimationSystem.Types.dll</HintPath>
 		</Reference>
 		<Reference Include="Assembly-CSharp">
- 		  <HintPath>..\..\3.8 Deps\Assembly-CSharp.dll</HintPath>
+ 		  <HintPath>..\..\..\Managed\Assembly-CSharp.dll</HintPath>
 		</Reference>
 		<Reference Include="BepInEx">
-		  <HintPath>..\..\3.8 Deps\BepInEx.dll</HintPath>
+		  <HintPath>..\..\..\..\BepInEx\core\BepInEx.dll</HintPath>
 		</Reference>
 		<Reference Include="bsg.console.core">
-		  <HintPath>..\..\3.8 Deps\bsg.console.core.dll</HintPath>
+		  <HintPath>..\..\..\Managed\bsg.console.core.dll</HintPath>
 		</Reference>
 		<Reference Include="Comfort">
-		  <HintPath>..\..\3.8 Deps\Comfort.dll</HintPath>
+		  <HintPath>..\..\..\Managed\Comfort.dll</HintPath>
 		</Reference>
 		<Reference Include="Comfort.Unity">
-		  <HintPath>..\..\3.8 Deps\Comfort.Unity.dll</HintPath>
+		  <HintPath>..\..\..\Managed\Comfort.Unity.dll</HintPath>
 		</Reference>
 		<Reference Include="DissonanceVoip">
-		  <HintPath>..\..\3.8 Deps\DissonanceVoip.dll</HintPath>
+		  <HintPath>..\..\..\Managed\DissonanceVoip.dll</HintPath>
 		</Reference>
 		<Reference Include="ItemComponent.Types">
-		  <HintPath>..\..\3.8 Deps\ItemComponent.Types.dll</HintPath>
+		  <HintPath>..\..\..\Managed\ItemComponent.Types.dll</HintPath>
 		</Reference>
 		<Reference Include="Newtonsoft.Json">
-		  <HintPath>..\..\3.8 Deps\Newtonsoft.Json.dll</HintPath>
+		  <HintPath>..\..\..\Managed\Newtonsoft.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="Sirenix.Serialization">
-		  <HintPath>..\..\3.8 Deps\Sirenix.Serialization.dll</HintPath>
+		  <HintPath>..\..\..\Managed\Sirenix.Serialization.dll</HintPath>
 		</Reference>
 		<Reference Include="Unity.TextMeshPro">
-		  <HintPath>..\..\3.8 Deps\Unity.TextMeshPro.dll</HintPath>
+		  <HintPath>..\..\..\Managed\Unity.TextMeshPro.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine">
-		  <HintPath>..\..\3.8 Deps\UnityEngine.dll</HintPath>
+		  <HintPath>..\..\..\Managed\UnityEngine.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.AnimationModule">
-		  <HintPath>..\..\3.8 Deps\UnityEngine.AnimationModule.dll</HintPath>
+		  <HintPath>..\..\..\Managed\UnityEngine.AnimationModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.AssetBundleModule">
-		  <HintPath>..\..\3.8 Deps\UnityEngine.AssetBundleModule.dll</HintPath>
+		  <HintPath>..\..\..\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.AudioModule">
-		  <HintPath>..\..\3.8 Deps\UnityEngine.AudioModule.dll</HintPath>
+		  <HintPath>..\..\..\Managed\UnityEngine.AudioModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.CoreModule">
-		  <HintPath>..\..\3.8 Deps\UnityEngine.CoreModule.dll</HintPath>
+		  <HintPath>..\..\..\Managed\UnityEngine.CoreModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.IMGUIModule">
-		  <HintPath>..\..\3.8 Deps\UnityEngine.IMGUIModule.dll</HintPath>
+		  <HintPath>..\..\..\Managed\UnityEngine.IMGUIModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.InputLegacyModule">
-		  <HintPath>..\..\3.8 Deps\UnityEngine.InputLegacyModule.dll</HintPath>
+		  <HintPath>..\..\..\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.TextRenderingModule">
-		  <HintPath>..\..\3.8 Deps\UnityEngine.TextRenderingModule.dll</HintPath>
+		  <HintPath>..\..\..\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UI">
-		  <HintPath>..\..\3.8 Deps\UnityEngine.UI.dll</HintPath>
+		  <HintPath>..\..\..\Managed\UnityEngine.UI.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 

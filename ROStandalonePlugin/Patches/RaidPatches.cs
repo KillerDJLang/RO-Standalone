@@ -6,17 +6,17 @@ using Newtonsoft.Json;
 using UnityEngine;
 using EFT.Interactive;
 using EFT.Communications;
-using Aki.Common.Http;
-using Aki.Custom.Airdrops;
-using Aki.Custom.Airdrops.Utils;
-using Aki.Custom.Airdrops.Models;
-using Aki.Reflection.Patching;
-using DJsROStandalone.Controllers;
-using Aki.Custom.BTR.Utils;
+using SPT.Common.Http;
+using SPT.Custom.Airdrops;
+using SPT.Custom.Airdrops.Utils;
+using SPT.Custom.Airdrops.Models;
+using SPT.Reflection.Patching;
+using ROStandalone.Controllers;
+using SPT.Custom.BTR.Utils;
 
-namespace DJsROStandalone.Patches
+namespace ROStandalone.Patches
 {
-    public class EventExfilPatch : ModulePatch
+        public class EventExfilPatch : ModulePatch
     {
         internal static bool IsLockdown = false;
 

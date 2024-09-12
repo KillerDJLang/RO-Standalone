@@ -5,9 +5,9 @@ using EFT.Interactive;
 using EFT.Communications;
 using System.Reflection;
 using System.Collections;
-using DJsROStandalone.Helpers;
+using ROStandalone.Helpers;
 
-namespace DJsROStandalone.Controllers
+namespace ROStandalone.Controllers
 {
     internal class DoorController : MonoBehaviour
     {
@@ -56,9 +56,9 @@ namespace DJsROStandalone.Controllers
 
         private IEnumerator DoorEvents()
         {
-            yield return new WaitForSeconds(UnityEngine.Random.Range(DJConfig.DoorRangeMin.Value, DJConfig.DoorRangeMax.Value) * 60f);
+            yield return new WaitForSeconds(UnityEngine.Random.Range(ConfigController.EventConfig.DoorEventRangeMinimumServer, ConfigController.EventConfig.DoorEventRangeMaximumServer) * 60f);
 
-            if (Plugin.ROSGameWorld != null && Plugin.ROSGameWorld.AllAlivePlayersList != null && Plugin.ROSGameWorld.AllAlivePlayersList.Count > 0 && !(Plugin.ROSPlayer is HideoutPlayer))
+            if (Plugin.ROGameWorld != null && Plugin.ROGameWorld.AllAlivePlayersList != null && Plugin.ROGameWorld.AllAlivePlayersList.Count > 0 && !(Plugin.ROPlayer is HideoutPlayer))
             {
                 Weighting.DoRandomEvent(Weighting.weightedDoorMethods);
             }
@@ -78,7 +78,7 @@ namespace DJsROStandalone.Controllers
 
         public void PowerOn()
         {
-            if (Plugin.ROSPlayer.Location != "laboratory" && Plugin.ROSPlayer.Location != "rezervbase" && Plugin.ROSPlayer.Location != "bigmap" && Plugin.ROSPlayer.Location != "interchange")
+            if (Plugin.ROPlayer.Location != "laboratory" && Plugin.ROPlayer.Location != "rezervbase" && Plugin.ROPlayer.Location != "bigmap" && Plugin.ROPlayer.Location != "interchange")
             {
 #if DEBUG
                 Plugin.Log.LogInfo("No switches available on this map, returning.");
@@ -102,6 +102,13 @@ namespace DJsROStandalone.Controllers
             if (_switch.DoorState == EDoorState.Shut)
             {
                 typeof(Switch).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(_switch, null);
+
+#if DEBUG
+            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
+            {
+                Utils.LogToServerConsole("A random switch has been thrown.");
+            }
+#endif
 
                 RemoveAt(ref _switchs, selection);
             }
@@ -140,6 +147,13 @@ namespace DJsROStandalone.Controllers
                 typeof(Door).GetMethod("Unlock", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
                 typeof(Door).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
 
+#if DEBUG
+            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
+            {
+                Utils.LogToServerConsole("A random door has been unlocked.");
+            }
+#endif
+
                 RemoveAt(ref _door, selection);
             }
 
@@ -151,7 +165,7 @@ namespace DJsROStandalone.Controllers
 
         public void DoKUnlock()
         {
-            if (Plugin.ROSPlayer.Location != "laboratory" && Plugin.ROSPlayer.Location != "interchange")
+            if (Plugin.ROPlayer.Location != "laboratory" && Plugin.ROPlayer.Location != "interchange")
             {
 #if DEBUG
                 Plugin.Log.LogInfo("No keycard doors available on this map, returning.");
@@ -177,6 +191,13 @@ namespace DJsROStandalone.Controllers
                 typeof(KeycardDoor).GetMethod("Unlock", BindingFlags.Instance | BindingFlags.Public).Invoke(kdoor, null);
                 typeof(KeycardDoor).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(kdoor, null);
 
+#if DEBUG
+            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
+            {
+                Utils.LogToServerConsole("A random keycard door has been unlocked.");
+            }
+#endif
+
                 RemoveAt(ref _kdoor, selection);
             }
 
@@ -192,7 +213,7 @@ namespace DJsROStandalone.Controllers
 
         public static void RandomizeDefaultDoors()
         {
-            if (DJConfig.EnableRaidStartEvents.Value && Plugin.ROSPlayer.Location != "laboratory")
+            if (DJConfig.EnableRaidStartEvents.Value && Plugin.ROPlayer.Location != "laboratory")
             {
                 FindObjectsOfType<Door>().ExecuteForEach(door =>
                 {
@@ -235,14 +256,18 @@ namespace DJsROStandalone.Controllers
                 });
 
 #if DEBUG
+            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
+            {
                 NotificationManagerClass.DisplayMessageNotification($"[{_doorChangedCount}] total Doors have had their states changed. [{_doorNotChangedCount}] haven't been modified.", ENotificationDurationType.Long, ENotificationIconType.Default);
+                Utils.LogToServerConsole($"[{_doorChangedCount}] total Doors have had their states changed. [{_doorNotChangedCount}] haven't been modified.");
+            }
 #endif
             }
         }
 
         public static void RandomizeLampState()
         {
-            if (DJConfig.EnableRaidStartEvents.Value && Plugin.ROSPlayer.Location != "laboratory")
+            if (DJConfig.EnableRaidStartEvents.Value && Plugin.ROPlayer.Location != "laboratory")
             {
                 FindObjectsOfType<LampController>().ExecuteForEach(lamp =>
                 {
@@ -255,7 +280,11 @@ namespace DJsROStandalone.Controllers
                 });
 
 #if DEBUG
+            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
+            {
                 NotificationManagerClass.DisplayMessageNotification($"[{_lampCount}] total Lamps have been modified.", ENotificationDurationType.Long, ENotificationIconType.Default);
+                Utils.LogToServerConsole($"[{_lampCount}] total Lamps have been modified.");
+            }
 #endif
             }
         }
@@ -277,7 +306,7 @@ namespace DJsROStandalone.Controllers
 
         public bool Ready()
         {
-            return Plugin.ROSGameWorld != null && Plugin.ROSGameWorld.AllAlivePlayersList != null && Plugin.ROSGameWorld.AllAlivePlayersList.Count > 0 && !(Plugin.ROSPlayer is HideoutPlayer);
+            return Plugin.ROGameWorld != null && Plugin.ROGameWorld.AllAlivePlayersList != null && Plugin.ROGameWorld.AllAlivePlayersList.Count > 0 && !(Plugin.ROPlayer is HideoutPlayer);
         }
     }
 }

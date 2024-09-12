@@ -4,18 +4,20 @@ using System;
 using BepInEx;
 using BepInEx.Logging;
 using UnityEngine;
-using Aki.Reflection.Utils;
-using DJsROStandalone.Helpers;
-using DJsROStandalone.Patches;
-using DJsROStandalone.Controllers;
+using SPT.Reflection.Utils;
+using ROStandalone.Helpers;
+using ROStandalone.Patches;
+using ROStandalone.Controllers;
+using ROStandalone.Checkers;
 
-namespace DJsROStandalone
+namespace ROStandalone
 {
-    [BepInPlugin("DJ.ROStandalone", "DJs RO Standalone", "1.0.0")]
+    [BepInPlugin("DJ.ROStandalone", "Raid Overhaul Standalone", PluginVersion)]
 
     public class Plugin : BaseUnityPlugin
     {
-        public const int TarkovVersion = 29197;
+        public const int TarkovVersion = 30626;
+        public const string PluginVersion = "1.1.0";
         internal static GameObject Hook;
         internal static EventController ECScript;
         internal static DoorController DCScript;
@@ -23,14 +25,14 @@ namespace DJsROStandalone
 
         public static ISession Session;
 
-        public static GameWorld ROSGameWorld
+        public static GameWorld ROGameWorld
         { get => Singleton<GameWorld>.Instance; }
         
-        public static Player ROSPlayer
-        { get => ROSGameWorld.MainPlayer; }
+        public static Player ROPlayer
+        { get => ROGameWorld.MainPlayer; }
 
         public static SkillManager ROSkillManager
-        { get => ROSGameWorld.MainPlayer.Skills; }
+        { get => ROGameWorld.MainPlayer.Skills; }
 
         void Awake()
         {
@@ -49,10 +51,13 @@ namespace DJsROStandalone
             DCScript = Hook.AddComponent<DoorController>();
             DontDestroyOnLoad(Hook);
 
-            // Get and Initialize the weightings
-            Weighting.EventWeights = Utils.Get<Weightings>("/ROStandaloneBackend/GetEventWeightings");
-
+            // Get and Initialize the Server Configs
+            ConfigController.EventConfig = Utils.Get<EventsConfig>("/ROStandaloneBackend/GetEventConfig");
             Weighting.InitWeightings();
+
+            ConfigController.ServerConfig = Utils.Get<ServerConfigs>("/ROStandaloneBackend/GetServerConfig");
+
+            Utils.GetWeatherFields();
 
             new RandomizeDefaultStatePatch().Enable();
             new EventExfilPatch().Enable();

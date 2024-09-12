@@ -1,15 +1,14 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using ROStandalone.Controllers;
 
-namespace DJsROStandalone.Helpers
+namespace ROStandalone.Helpers
 {
     public static class Weighting
     {
         public static List<(Action, int)> weightedEvents;
         public static List<(Action, int)> weightedDoorMethods;
-
-        public static Weightings EventWeights = new Weightings();
 
         public static void InitWeightings()
         {
@@ -26,7 +25,7 @@ namespace DJsROStandalone.Helpers
             int totalWeight = weighting.Sum(pair => pair.Item2);
 
             // Generate a random number between 1 and totalWeight
-            int randomNum = new System.Random().Next(1, totalWeight + 1);
+            int randomNum = new Random().Next(1, totalWeight + 1);
 
             // Find the method to call based on the random number
             foreach (var (method, weight) in weighting)
@@ -43,9 +42,9 @@ namespace DJsROStandalone.Helpers
 
         private static void InitDoorWeighting()
         {
-            var _switchWeighting = DJConfig.PowerOn.Value ? EventWeights.DoorEvents.SwitchWeights : 0;
-            var _doorWeighting = DJConfig.DoorUnlock.Value ? EventWeights.DoorEvents.LockedDoorWeights : 0;
-            var _keycardWeighting = DJConfig.KDoorUnlock.Value ? EventWeights.DoorEvents.KeycardWeights : 0;
+            var _switchWeighting = DJConfig.DoorEventsToEnable.Value.HasFlag(DJConfig.DoorEvents.PowerOn) ? ConfigController.EventConfig.DoorEvents.SwitchWeights : 0;
+            var _doorWeighting = DJConfig.DoorEventsToEnable.Value.HasFlag(DJConfig.DoorEvents.DoorUnlock) ? ConfigController.EventConfig.DoorEvents.LockedDoorWeights : 0;
+            var _keycardWeighting = DJConfig.DoorEventsToEnable.Value.HasFlag(DJConfig.DoorEvents.KDoorUnlock) ? ConfigController.EventConfig.DoorEvents.KeycardWeights : 0;
 
             weightedDoorMethods = new List<(Action, int)>
             {
@@ -57,19 +56,20 @@ namespace DJsROStandalone.Helpers
 
         private static void InitEventWeighting()
         {
-            var _damageWeighting = DJConfig.NoJokesHere.Value ? EventWeights.RaidEvents.DamageEventWeights : 0;
-            var _airdropWeighting = DJConfig.Airdrop.Value ? EventWeights.RaidEvents.AirdropEventWeights : 0;
-            var _blackoutWeighting = DJConfig.Blackout.Value ? EventWeights.RaidEvents.BlackoutEventWeights : 0;
-            var _jokeWeighting = DJConfig.JokesAndFun.Value ? EventWeights.RaidEvents.JokeEventWeights : 0;
-            var _healWeighting = DJConfig.Heal.Value ? EventWeights.RaidEvents.HealEventWeights : 0;
-            var _armorWeighting = DJConfig.ArmorRepair.Value ? EventWeights.RaidEvents.ArmorEventWeights : 0;
-            var _skillWeighting = DJConfig.Skill.Value ? EventWeights.RaidEvents.SkillEventWeights : 0;
-            var _metWeighting = DJConfig.Metabolism.Value ? EventWeights.RaidEvents.MetabolismEventWeights : 0;
-            var _malfWeighting = DJConfig.Malfunction.Value ? EventWeights.RaidEvents.MalfEventWeights : 0;
-            var _traderWeighting = DJConfig.Trader.Value ? EventWeights.RaidEvents.TraderEventWeights : 0;
-            var _berserkWeighting = DJConfig.Berserk.Value ? EventWeights.RaidEvents.BerserkEventWeights : 0;
-            var _weightWeightingLOL = DJConfig.Weight.Value ? EventWeights.RaidEvents.WeightEventWeights : 0;
-            var _exfilWeighting = DJConfig.ExfilLockdown.Value ? EventWeights.RaidEvents.ExfilEventWeights : 0;
+            var _damageWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Damage) ? ConfigController.EventConfig.RaidEvents.DamageEventWeights : 0;
+            var _airdropWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Airdrop) ? ConfigController.EventConfig.RaidEvents.AirdropEventWeights : 0;
+            var _blackoutWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Blackout) ? ConfigController.EventConfig.RaidEvents.BlackoutEventWeights : 0;
+            var _jokeWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.NoJokesHere) ? ConfigController.EventConfig.RaidEvents.JokeEventWeights : 0;
+            var _healWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Heal) ? ConfigController.EventConfig.RaidEvents.HealEventWeights : 0;
+            var _armorWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.ArmorRepair) ? ConfigController.EventConfig.RaidEvents.ArmorEventWeights : 0;
+            var _skillWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Skill) ? ConfigController.EventConfig.RaidEvents.SkillEventWeights : 0;
+            var _metWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Metabolism) ? ConfigController.EventConfig.RaidEvents.MetabolismEventWeights : 0;
+            var _malfWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Malfunction) ? ConfigController.EventConfig.RaidEvents.MalfEventWeights : 0;
+            var _traderWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Trader) ? ConfigController.EventConfig.RaidEvents.TraderEventWeights : 0;
+            var _berserkWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Berserk) ? ConfigController.EventConfig.RaidEvents.BerserkEventWeights : 0;
+            var _weightWeightingLOL = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Weight) ? ConfigController.EventConfig.RaidEvents.WeightEventWeights : 0;
+            var _maxLLWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.ShoppingSpree) ? ConfigController.EventConfig.RaidEvents.MaxLLEventWeights : 0;
+            var _exfilWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.ExfilLockdown) ? ConfigController.EventConfig.RaidEvents.ExfilEventWeights : 0;
 
             weightedEvents = new List<(Action, int)>
             {
@@ -85,6 +85,7 @@ namespace DJsROStandalone.Helpers
                 (Plugin.ECScript.DoLLEvent,         _traderWeighting),
                 (Plugin.ECScript.DoBerserkEvent,    _berserkWeighting),
                 (Plugin.ECScript.DoWeightEvent,     _weightWeightingLOL),
+                (Plugin.ECScript.DoMaxLLEvent,      _maxLLWeighting),
                 (Plugin.ECScript.DoLockDownEvent,   _exfilWeighting)
             };
         }

@@ -1,65 +1,171 @@
 ﻿using Newtonsoft.Json;
 
-namespace DJsROStandalone.Helpers
+namespace ROStandalone.Helpers
 {
-    public struct Weightings
+    #region Server Config Layout Base
+    public struct ServerConfigs
+    {
+        public RaidServer RaidChanges;
+        public LootChangesServer LootChanges;
+        public EventsServer Events;
+        public DebugServer Debug;
+    }
+
+    public struct EventsConfig
     {
         public DoorWeightings DoorEvents;
 
+        [JsonProperty("DoorEventRangeMinimum")]
+        public float DoorEventRangeMinimumServer;
+
+        [JsonProperty("DoorEventRangeMaximum")]
+        public float DoorEventRangeMaximumServer;
+
         public RaidEventWeightings RaidEvents;
+
+        [JsonProperty("RandomEventRangeMinimum")]
+        public float RandomEventRangeMinimumServer;
+
+        [JsonProperty("RandomEventRangeMaximum")]
+        public float RandomEventRangeMaximumServer;
     }
 
+    public struct SeasonalConfig
+    {
+        [JsonProperty("seasonsProgression")]
+        public int SeasonsProgression;
+    }
+    #endregion
+
+    #region Event Weightings
     public struct DoorWeightings
     {
-        [JsonProperty("_switchWeighting")]
+        [JsonProperty("SwitchToggle")]
         public int SwitchWeights;
 
-        [JsonProperty("_doorWeighting")]
+        [JsonProperty("DoorUnlock")]
         public int LockedDoorWeights;
 
-        [JsonProperty("_keycardWeighting")]
+        [JsonProperty("KeycardUnlock")]
         public int KeycardWeights;
     }
 
     public struct RaidEventWeightings
     {
-        [JsonProperty("_damageWeighting")]
+        [JsonProperty("DamageEvent")]
         public int DamageEventWeights;
 
-        [JsonProperty("_airdropWeighting")]
+        [JsonProperty("AirdropEvent")]
         public int AirdropEventWeights;
 
-        [JsonProperty("_blackoutWeighting")]
+        [JsonProperty("BlackoutEvent")]
         public int BlackoutEventWeights;
 
-        [JsonProperty("_jokeWeighting")]
+        [JsonProperty("JokeEvent")]
         public int JokeEventWeights;
 
-        [JsonProperty("_healWeighting")]
+        [JsonProperty("HealEvent")]
         public int HealEventWeights;
 
-        [JsonProperty("_armorWeighting")]
+        [JsonProperty("ArmorEvent")]
         public int ArmorEventWeights;
 
-        [JsonProperty("_skillWeighting")]
+        [JsonProperty("SkillEvent")]
         public int SkillEventWeights;
 
-        [JsonProperty("_metWeighting")]
+        [JsonProperty("MetabolismEvent")]
         public int MetabolismEventWeights;
 
-        [JsonProperty("_malfWeighting")]
+        [JsonProperty("MalfunctionEvent")]
         public int MalfEventWeights;
 
-        [JsonProperty("_traderWeighting")]
+        [JsonProperty("TraderEvent")]
         public int TraderEventWeights;
 
-        [JsonProperty("_berserkWeighting")]
+        [JsonProperty("BerserkEvent")]
         public int BerserkEventWeights;
 
-        [JsonProperty("_weightWeightingLOL")]
+        [JsonProperty("WeightEvent")]
         public int WeightEventWeights;
 
-        [JsonProperty("_exfilWeighting")]
+        [JsonProperty("MaxLLEvent")]
+        public int MaxLLEventWeights;
+
+        [JsonProperty("ExfilEvent")]
         public int ExfilEventWeights;
     }
+    #endregion
+
+    #region Raid Config
+    public struct RaidServer
+    {
+        public ReduceFoodAndHydroDegradeRaid ReduceFoodAndHydroDegrade;
+
+        [JsonProperty("EnableExtendedRaids")]
+        public bool EnableExtendedRaids;
+
+        [JsonProperty("TimeLimit")]
+        public int RaidTimeLimit;
+    }
+
+    public struct ReduceFoodAndHydroDegradeRaid
+    {
+        [JsonProperty("Enabled")]
+        public bool EnableFoodAndHydroDegrade;
+
+        [JsonProperty("EnergyDecay")]
+        public float EnergyDecay;
+
+        [JsonProperty("HydroDecay")]
+        public float HydroDecay;
+    }
+    #endregion
+
+    #region Loot Changes Config
+    public struct LootChangesServer
+    {
+        [JsonProperty("Enabled")]
+        public bool EnableLootChanges;
+
+        [JsonProperty("StaticLootMultiplier")]
+        public float StaticLootMulti;
+
+        [JsonProperty("LooseLootMultiplier")]
+        public float LooseLootMulti;
+
+        [JsonProperty("MarkedRoomLootMultiplier")]
+        public float MarkedRoomMulti;
+    }
+    #endregion
+
+    #region Event Changes Config
+    public struct EventsServer
+    {
+        [JsonProperty("EnableWeatherOptions")]
+        public bool EnableWeatherChanges;
+
+        [JsonProperty("AllSeasons")]
+        public bool AllSeasonsRandomized;
+
+        [JsonProperty("NoWinter")]
+        public bool NoWinterRandomized;
+
+        [JsonProperty("SeasonalProgression")]
+        public bool SeasonalWeatherProgression;
+
+        [JsonProperty("WinterWonderland")]
+        public bool EnableWinterOnly;
+
+        [JsonProperty("RandomizedSeasonalEvents")]
+        public bool EnableRandomizedSeasonalEvents;
+    }
+    #endregion
+
+    #region Debug Logging Server Config
+    public struct DebugServer
+    {
+        [JsonProperty("ExtraLogging")]
+        public bool EnableExtraDebugLogging;
+    }
+    #endregion
 }

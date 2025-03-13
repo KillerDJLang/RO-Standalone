@@ -1,7 +1,7 @@
 using System;
 using BepInEx.Configuration;
 
-namespace ROStandalone.Helpers
+namespace ROStandalone.Configs
 {
     public static class DJConfig
     {
@@ -22,8 +22,9 @@ namespace ROStandalone.Helpers
             NoJokesHere = 2048,
             ShoppingSpree = 4096,
             ExfilLockdown = 8192,
+            Artillery = 16384,
 
-        All = Damage | Blackout | ArmorRepair | Heal | Airdrop | Skill | Metabolism | Malfunction | Trader | Berserk | Weight | NoJokesHere | ShoppingSpree | ExfilLockdown,
+        All = Damage | Blackout | ArmorRepair | Heal | Airdrop | Skill | Metabolism | Malfunction | Trader | Berserk | Weight | NoJokesHere | ShoppingSpree | ExfilLockdown | Artillery,
         }
 
         [Flags]

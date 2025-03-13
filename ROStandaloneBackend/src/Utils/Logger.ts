@@ -1,28 +1,54 @@
+import { inject, injectable } from "tsyringe";
+//Spt Classes
 import { LogTextColor } from "@spt/models/spt/logging/LogTextColor";
-import type { References } from "./References";
+import { ILogger } from "@spt/models/spt/utils/ILogger";
+import type { VFS } from "@spt/utils/VFS";
+//Custom Classes
+import type { debugFile } from "../models/Interfaces";
+//Modules
+import path from "node:path";
+import JSON5 from "json5";
 
-export class Logger {
-    private logPrefix = "[RO Standalone] ";
+@injectable()
+export class ROLogger {
+    private logPrefix = "[Raid Overhaul] ";
 
-    constructor(private ref: References) {}
+    constructor(
+        @inject("VFS") protected vfs: VFS,
+        @inject("WinstonLogger") protected logger: ILogger,
+    ) {}
 
     public log(text: string, textColor?: LogTextColor) {
         if (typeof textColor !== "undefined") {
-            this.ref.logger.log(this.logPrefix + text, textColor);
+            this.logger.log(this.logPrefix + text, textColor);
         } else {
-            this.ref.logger.log(this.logPrefix + text, LogTextColor.WHITE);
+            this.logger.log(this.logPrefix + text, LogTextColor.WHITE);
         }
     }
 
     public logError(errorText: string) {
-        this.ref.logger.error(this.logPrefix + errorText);
+        this.logger.error(this.logPrefix + errorText);
     }
 
     public logWarning(text: string) {
-        this.ref.logger.warning(this.logPrefix + text);
+        this.logger.warning(this.logPrefix + text);
     }
 
-    public logToServer(message: string): void {
-        this.log(`${message}`, LogTextColor.CYAN);
+    public logDebug(text: string) {
+        const debugConfig = JSON5.parse(
+            this.vfs.readFile(path.resolve(__dirname, "./Data/debugOptions.json5")),
+        ) as debugFile;
+
+        if (debugConfig.debugMode) {
+            this.logger.log(this.logPrefix + text, LogTextColor.WHITE);
+        }
+    }
+
+    public logToServer(text: string) {
+        this.logger.log(this.logPrefix + text, LogTextColor.CYAN);
+    }
+
+    public debugModeWarning() {
+        this.logger.log(this.logPrefix + "DEBUG MODE ENABLED", LogTextColor.YELLOW);
     }
 }

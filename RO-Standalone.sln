@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ROBuild", "ROBuild\ROBuild.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ROStandalone", "ROStandalonePlugin\ROStandalone.csproj", "{F35F314F-E074-428D-B317-1C3A043D88E0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ROStandalonePackets", "ROStandalonePackets\Packets.csproj", "{7731DB9C-2E65-4F4C-80F7-55CF22BEDE98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{F35F314F-E074-428D-B317-1C3A043D88E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F35F314F-E074-428D-B317-1C3A043D88E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F35F314F-E074-428D-B317-1C3A043D88E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7731DB9C-2E65-4F4C-80F7-55CF22BEDE98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7731DB9C-2E65-4F4C-80F7-55CF22BEDE98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7731DB9C-2E65-4F4C-80F7-55CF22BEDE98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7731DB9C-2E65-4F4C-80F7-55CF22BEDE98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

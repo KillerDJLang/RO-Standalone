@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using ROStandalone.Controllers;
+using ROStandalone.Configs;
 
 namespace ROStandalone.Helpers
 {
@@ -70,6 +71,7 @@ namespace ROStandalone.Helpers
             var _weightWeightingLOL = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Weight) ? ConfigController.EventConfig.RaidEvents.WeightEventWeights : 0;
             var _maxLLWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.ShoppingSpree) ? ConfigController.EventConfig.RaidEvents.MaxLLEventWeights : 0;
             var _exfilWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.ExfilLockdown) ? ConfigController.EventConfig.RaidEvents.ExfilEventWeights : 0;
+            var _artyWeighting = DJConfig.RandomEventsToEnable.Value.HasFlag(DJConfig.RaidEvents.Artillery) ? ConfigController.EventConfig.RaidEvents.ArtilleryEventWeights : 0;
 
             weightedEvents = new List<(Action, int)>
             {
@@ -86,7 +88,8 @@ namespace ROStandalone.Helpers
                 (Plugin.ECScript.DoBerserkEvent,    _berserkWeighting),
                 (Plugin.ECScript.DoWeightEvent,     _weightWeightingLOL),
                 (Plugin.ECScript.DoMaxLLEvent,      _maxLLWeighting),
-                (Plugin.ECScript.DoLockDownEvent,   _exfilWeighting)
+                (Plugin.ECScript.DoLockDownEvent,   _exfilWeighting),
+                (Plugin.ECScript.DoArtyEvent,       _artyWeighting),
             };
         }
     }

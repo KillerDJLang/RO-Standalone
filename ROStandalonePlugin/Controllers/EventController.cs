@@ -1,24 +1,30 @@
 using EFT;
 using EFT.UI;
+using EFT.Interactive;
+using EFT.HealthSystem;
+using EFT.UI.Matchmaker;
+using EFT.UI.BattleTimer;
+using EFT.InventoryLogic;
+using EFT.Communications;
+using EFT.MovingPlatforms;
 using JsonType;
 using UnityEngine;
 using UnityEngine.UI;
 using HarmonyLib;
+using Comfort.Common;
+using CommonAssets.Scripts.Game;
+using System.Linq;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-using EFT.Interactive;
-using EFT.HealthSystem;
-using EFT.UI.BattleTimer;
-using EFT.InventoryLogic;
-using EFT.Communications;
-using SPT.Custom.Airdrops;
 using System.Threading.Tasks;
 using ROStandalone.Helpers;
 using ROStandalone.Patches;
+using ROStandalone.Configs;
+using ROStandalone.Fika;
+
 
 using static ROStandalone.Plugin;
-
 
 namespace ROStandalone.Controllers
 {
@@ -26,7 +32,10 @@ namespace ROStandalone.Controllers
     {
         private bool _exfilUIChanged = false;
 
-        public static bool _eventisRunning = false;
+        private static bool _pmcExfilEventRunning = false;
+        public static bool _eventIsRunning = false;
+        public static bool _exfilLockdown;
+        public static bool _gearExfil;
         private bool _airdropDisabled = false;
         private bool _metabolismDisabled = false;
         private bool _jokeEventHasRun = false;
@@ -34,6 +43,7 @@ namespace ROStandalone.Controllers
         private bool _berserkEventHasRun = false;
         private bool _malfEventHasRun = false;
         private bool _weightEventHasRun = false;
+        private bool _artyEventHasRun = false;
 
         private int _skillEventCount = 0;
         private int _repairEventCount = 0;
@@ -42,13 +52,15 @@ namespace ROStandalone.Controllers
         private int _maxLLEventCount = 0;
         private int _exfilEventCount = 0;
 
-        public static int _mouseInputCount = 0;
+        public static int timeStart;
+        public static int _mouseInputCountT = 0;
+        public static int _mouseInputCountE = 0;
 
         private Switch[] _pswitchs = null;
         private KeycardDoor[] _keydoor = null;
         private LampController[] _lamp = null;
 
-        public DamageInfo Blunt { get; private set; }
+        public DamageInfoStruct Blunt { get; private set; }
 
         public EExfiltrationStatus AwaitsManualActivation { get; private set; }
 
@@ -72,10 +84,15 @@ namespace ROStandalone.Controllers
         private Dictionary<string, OriginalWeaponStatsMalf> _originalWSMalf = new Dictionary<string, OriginalWeaponStatsMalf>();
         private IEnumerable<Item> _allWeapons => Session.Profile.Inventory.AllRealPlayerItems;
 
-        private const string _whiteFlare = "62178be9d0050232da3485d9";
-
         void Update()
         {
+            if (ConfigController.DebugConfig.TimeChanges)
+            {
+                RaidTime.inverted = MonoBehaviourSingleton<MenuUI>.Instance == null || MonoBehaviourSingleton<MenuUI>.Instance.MatchMakerSelectionLocationScreen == null
+                ? RaidTime.inverted
+                : !((EDateTime)typeof(MatchMakerSelectionLocationScreen).GetField("edateTime_0", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(MonoBehaviourSingleton<MenuUI>.Instance.MatchMakerSelectionLocationScreen) == EDateTime.CURR);
+            }
+
             if (!Ready() || !DJConfig.EnableEvents.Value)
             {
                 // Reset Events
@@ -86,6 +103,7 @@ namespace ROStandalone.Controllers
                 if (_berserkEventHasRun != false)   { _berserkEventHasRun = false; }
                 if (_malfEventHasRun != false)      { _malfEventHasRun = false; }
                 if (_weightEventHasRun != false)    { _weightEventHasRun = false; }
+                if (_artyEventHasRun != false)      { _artyEventHasRun = false; }
 
                 if (_skillEventCount != 0)          { _skillEventCount = 0; }
                 if (_repairEventCount != 0)         { _repairEventCount = 0; }
@@ -113,11 +131,11 @@ namespace ROStandalone.Controllers
             }
 
 
-            if (!_eventisRunning)
+            if (!_eventIsRunning && FikaInterface.IAmHost())
             {
                 StaticManager.Instance.StartCoroutine(StartEvents());
 
-                _eventisRunning = true;
+                _eventIsRunning = true;
             }
 
             if (EventExfilPatch.IsLockdown)
@@ -130,7 +148,9 @@ namespace ROStandalone.Controllers
 
             if (Ready())
             {
-                FlareLogicEC();
+                CheckForFlag();
+                FlareLogicTrain();
+                FlareLogicExfil();
             }
         }
 
@@ -138,7 +158,7 @@ namespace ROStandalone.Controllers
         {
             yield return new WaitForSeconds(Random.Range(ConfigController.EventConfig.RandomEventRangeMinimumServer, ConfigController.EventConfig.RandomEventRangeMaximumServer) * 60f);
 
-            if (ROGameWorld != null && ROGameWorld.AllAlivePlayersList != null && ROGameWorld.AllAlivePlayersList.Count > 0 && !(ROPlayer is HideoutPlayer))
+            if (Ready())
             {
                 Weighting.DoRandomEvent(Weighting.weightedEvents);
             }
@@ -150,7 +170,7 @@ namespace ROStandalone.Controllers
                 _lamp = null;
             }
 
-            _eventisRunning = false;
+            _eventIsRunning = false;
             yield break;
         }
 
@@ -192,21 +212,22 @@ namespace ROStandalone.Controllers
         {
             if (_healthEventCount >= 2) { return; }
 
+            FikaInterface.SendRandomEventPacket(Utils.Heal);
+
             NotificationManagerClass.DisplayMessageNotification("Heal Event: On your feet you ain't dead yet.", ENotificationDurationType.Long, ENotificationIconType.Default);
             ROPlayer.ActiveHealthController.RestoreFullHealth();
                 _healthEventCount++;
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
+            if (ConfigController.DebugConfig.DebugMode) {
                 Utils.LogToServerConsole("Heal Event has run");
             }
-#endif
         }
 
         public void DoDamageEvent()
         {
             if (_damageEventCount >= 1) { return; }
+
+            FikaInterface.SendRandomEventPacket(Utils.Damage);
 
             NotificationManagerClass.DisplayMessageNotification("Heart Attack Event: Better get to a medic quick, you don't have long left.", ENotificationDurationType.Long, ENotificationIconType.Alert);
             ROPlayer.ActiveHealthController.DoContusion(4f, 50f);
@@ -215,17 +236,16 @@ namespace ROStandalone.Controllers
             ROPlayer.ActiveHealthController.ApplyDamage(EBodyPart.Chest, 65f, Blunt);
                 _damageEventCount++;
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
+            if (ConfigController.DebugConfig.DebugMode) {
                 Utils.LogToServerConsole("Heart Attack Event has run");
             }
-#endif
         }
 
         public void DoArmorRepair()
         {
             if (_repairEventCount >= 2) { return; }
+
+            FikaInterface.SendRandomEventPacket(Utils.Repair);
 
             NotificationManagerClass.DisplayMessageNotification("Armor Repair Event: All equipped armor repaired... nice!", ENotificationDurationType.Long, ENotificationIconType.Default);
             ROPlayer.Profile.Inventory.GetPlayerItems().ExecuteForEach((item) =>
@@ -234,33 +254,32 @@ namespace ROStandalone.Controllers
                     _repairEventCount++;
             });
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
+            if (ConfigController.DebugConfig.DebugMode) {
                 Utils.LogToServerConsole("Armor Repair Event has run");
             }
-#endif            
         }
 
         public void DoAirdropEvent()
         {
+
             if (ROPlayer.Location != "factory4_day" && ROPlayer.Location != "factory4_night" && ROPlayer.Location != "laboratory" && ROPlayer.Location != "sandbox" && !_airdropEventHasRun)
             {
-                ROGameWorld.gameObject.AddComponent<AirdropsManager>().isFlareDrop = true;
+                if (Utils.FindTemplates(Utils.redFlare).FirstOrDefault() is not AmmoTemplate ammoTemplate) { return; };
+                
+                ROPlayer.HandleFlareSuccessEvent(ROPlayer.Transform.position, ammoTemplate);
+
                 NotificationManagerClass.DisplayMessageNotification("Aidrop Event: Incoming Airdrop!", ENotificationDurationType.Long, ENotificationIconType.Quest);
 
                 _airdropEventHasRun = true;
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Aidrop Event has run");
-            }
-#endif         
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Aidrop Event has run");
+                }
             }
 
             else
             {
+
                 Weighting.DoRandomEvent(Weighting.weightedEvents);
             }
         }
@@ -269,6 +288,8 @@ namespace ROStandalone.Controllers
         {
             if (!_jokeEventHasRun)
             {
+                FikaInterface.SendRandomEventPacket(Utils.Jokes);
+
                 NotificationManagerClass.DisplayMessageNotification("Heart Attack Event: Nice knowing ya, you've got 10 seconds", ENotificationDurationType.Long, ENotificationIconType.Alert);
 
                 await Task.Delay(10000);
@@ -279,12 +300,9 @@ namespace ROStandalone.Controllers
 
                 DoHealPlayer();
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Joke Event has run");
-            }
-#endif 
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Joke Event has run");
+                }
 
                 _jokeEventHasRun = true;
             }
@@ -297,6 +315,8 @@ namespace ROStandalone.Controllers
 
         public async void DoBlackoutEvent()
         {
+                FikaInterface.SendRandomEventPacket(Utils.Blackout);
+
                 foreach (Switch pSwitch in _pswitchs)
                 {
                     typeof(Switch).GetMethod("Close", BindingFlags.Instance | BindingFlags.Public).Invoke(pSwitch, null);
@@ -319,12 +339,11 @@ namespace ROStandalone.Controllers
                 }
 
             NotificationManagerClass.DisplayMessageNotification("Blackout Event: All power switches and lights disabled for 10 minutes", ENotificationDurationType.Long, ENotificationIconType.Alert);
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Blackout Event: All power switches and lights disabled for 10 minutes");
-            }
-#endif  
+
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Blackout Event: All power switches and lights disabled for 10 minutes");
+                }
+
                 await Task.Delay(600000);
 
                 foreach (Switch pSwitch in _pswitchs)
@@ -340,17 +359,16 @@ namespace ROStandalone.Controllers
 
             NotificationManagerClass.DisplayMessageNotification("Blackout Event over", ENotificationDurationType.Long, ENotificationIconType.Quest);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
+            if (ConfigController.DebugConfig.DebugMode) {
                 Utils.LogToServerConsole("Blackout Event has run");
-            }
-#endif              
+            }          
         }
 
         public void DoSkillEvent()
         {
             if (_skillEventCount >= 3) { return; }
+
+                FikaInterface.SendRandomEventPacket(Utils.Skill);
 
                 System.Random random = new System.Random();
 
@@ -380,18 +398,17 @@ namespace ROStandalone.Controllers
                     NotificationManagerClass.DisplayMessageNotification("Skill Event: You've lost a skill level, unlucky!", ENotificationDurationType.Long, ENotificationIconType.Quest);
                 }
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
+            if (ConfigController.DebugConfig.DebugMode) {
                 Utils.LogToServerConsole("Skill Event has run");
-            }
-#endif                  
+            }         
         }
 
         public void DoMetabolismEvent()
         {
             if (!_metabolismDisabled)
             {
+                FikaInterface.SendRandomEventPacket(Utils.Metabolism);
+
                 System.Random random = new System.Random();
                 int chance = random.Next(0, 100 + 1);
 
@@ -430,12 +447,9 @@ namespace ROStandalone.Controllers
                 }
             }
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
+            if (ConfigController.DebugConfig.DebugMode) {
                 Utils.LogToServerConsole("Metabolism Event has run");
             }
-#endif    
         }
 
         public async void DoMalfEvent()
@@ -444,6 +458,8 @@ namespace ROStandalone.Controllers
 
             if (!_malfEventHasRun)
             {
+                FikaInterface.SendRandomEventPacket(Utils.Malf);
+
                 _malfEventHasRun = true;
 
                 var tempItems = _allWeapons;
@@ -478,12 +494,9 @@ namespace ROStandalone.Controllers
 
                 NotificationManagerClass.DisplayMessageNotification("Malfunction Event: Be careful not to jam up!", ENotificationDurationType.Long, ENotificationIconType.Alert);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Malfunction Event has started");
-            }
-#endif    
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Malfunction Event has started");
+                }
 
                 await Task.Delay(300000);
 
@@ -499,12 +512,9 @@ namespace ROStandalone.Controllers
 
                 NotificationManagerClass.DisplayMessageNotification("Malfunction Event: Your weapon has had time to cool off, shouldn't have any more troubles!", ENotificationDurationType.Long, ENotificationIconType.Default);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Malfunction Event has run");
-            }
-#endif  
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Malfunction Event has run");
+                }
             }  
 
             else
@@ -515,6 +525,8 @@ namespace ROStandalone.Controllers
 
         public void DoLLEvent()
         {
+            FikaInterface.SendRandomEventPacket(Utils.LoyaltyLevel);
+
             System.Random random = new System.Random();
 
             var Trader = Utils.Traders.RandomElement();
@@ -525,12 +537,9 @@ namespace ROStandalone.Controllers
                 Session.Profile.TradersInfo[Trader].SetStanding(Session.Profile.TradersInfo[Trader].Standing + 0.1);
                 NotificationManagerClass.DisplayMessageNotification("Trader Event: A random Trader has gained a little more respect for you.", ENotificationDurationType.Default, ENotificationIconType.Achievement);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Trader Rep Gain Event has run");
-            }
-#endif  
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Trader Rep Gain Event has run");
+                }
             }
 
             else if (chance is >= 50 && chance is <= 100)
@@ -540,12 +549,9 @@ namespace ROStandalone.Controllers
                     Session.Profile.TradersInfo[Trader].SetStanding(Session.Profile.TradersInfo[Trader].Standing - 0.05);
                     NotificationManagerClass.DisplayMessageNotification("Trader Event: A random Trader has lost a little faith in you.", ENotificationDurationType.Default, ENotificationIconType.Achievement);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Trader Rep Loss Event has run");
-            }
-#endif  
+                    if (ConfigController.DebugConfig.DebugMode) {
+                        Utils.LogToServerConsole("Trader Rep Loss Event has run");
+                    }
                 }
 
                 else
@@ -561,6 +567,8 @@ namespace ROStandalone.Controllers
 
             if (!_berserkEventHasRun)
             {
+                FikaInterface.SendRandomEventPacket(Utils.Berserk);
+
                 _berserkEventHasRun = true;
 
                 var tempItems = _allWeapons;
@@ -603,12 +611,9 @@ namespace ROStandalone.Controllers
 
                 NotificationManagerClass.DisplayMessageNotification("Berserk Event: You're seeing red, I feel bad for any scavs and PMCs in your way!", ENotificationDurationType.Long, ENotificationIconType.Alert);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Berserk Event has started");
-            }
-#endif  
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Berserk Event has started");
+                }
 
                 await Task.Delay(180000);
 
@@ -629,12 +634,9 @@ namespace ROStandalone.Controllers
 
                 NotificationManagerClass.DisplayMessageNotification("Berserk Event: Your vision has cleared up, I guess you got all your rage out!", ENotificationDurationType.Long, ENotificationIconType.Alert);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Berserk Event has run");
-            }
-#endif  
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Berserk Event has run");
+                }
             }
 
             else
@@ -660,6 +662,8 @@ namespace ROStandalone.Controllers
 
             if (!_weightEventHasRun)
             {
+                FikaInterface.SendRandomEventPacket(Utils.Weight);
+
                 _weightEventHasRun = true;
 
                 if (chance is >= 0 && chance is <= 49)
@@ -675,12 +679,9 @@ namespace ROStandalone.Controllers
 
                     NotificationManagerClass.DisplayMessageNotification("Weight Event: Better hunker down until you get your stamina back!", ENotificationDurationType.Long, ENotificationIconType.Alert);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Weight Event has started");
-            }
-#endif  
+                    if (ConfigController.DebugConfig.DebugMode) {
+                        Utils.LogToServerConsole("Weight Event has started");
+                    }
 
                     await Task.Delay(180000);
 
@@ -693,12 +694,9 @@ namespace ROStandalone.Controllers
                     }
                     Session.Profile.Inventory.UpdateTotalWeight();
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Weight Event has run");
-            }
-#endif  
+                    if (ConfigController.DebugConfig.DebugMode) {
+                        Utils.LogToServerConsole("Weight Event has run");
+                    }
 
                     NotificationManagerClass.DisplayMessageNotification("Weight Event: You're rested and ready to get back out there!", ENotificationDurationType.Long, ENotificationIconType.Alert);
                 }
@@ -720,12 +718,9 @@ namespace ROStandalone.Controllers
 
                     NotificationManagerClass.DisplayMessageNotification("Weight Event: You feel light on your feet, stock up on everything you can!", ENotificationDurationType.Long, ENotificationIconType.Alert);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Weight Event has started");
-            }
-#endif  
+                    if (ConfigController.DebugConfig.DebugMode) {
+                        Utils.LogToServerConsole("Weight Event has started");
+                    }
 
                     await Task.Delay(180000);
 
@@ -740,12 +735,9 @@ namespace ROStandalone.Controllers
 
                     NotificationManagerClass.DisplayMessageNotification("Weight Event: You've lost your extra energy, hope you didn't fill your backpack too much!", ENotificationDurationType.Long, ENotificationIconType.Alert);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Weight Event has run");
-            }
-#endif  
+                    if (ConfigController.DebugConfig.DebugMode) {
+                        Utils.LogToServerConsole("Weight Event has run");
+                    }
                 }
             }
 
@@ -757,48 +749,102 @@ namespace ROStandalone.Controllers
 
         public async void DoMaxLLEvent()
         {
-            if (_maxLLEventCount >= 1) 
+            if (JsonHandler.CheckFilePath("TraderRep", "Flags"))
             {
-                return; 
-            }
+                JsonHandler.ReadFlagFile("TraderRep", "Flags");
 
-            var Traders = Utils.Traders;
+                FikaInterface.SendRandomEventPacket(Utils.MaxLoyaltyLevel);
 
-            _maxLLEventCount++;
-
-            foreach (var Trader in Traders)
-            {
+                if (!ConfigController.flags.traderRepFlag)
                 {
-                    Session.Profile.TradersInfo[Trader].SetStanding(Session.Profile.TradersInfo[Trader].Standing + 1);
+                    if (_maxLLEventCount >= 1) 
+                    {
+                        Weighting.DoRandomEvent(Weighting.weightedEvents);
+                        return; 
+                    }
+
+                    var Traders = Utils.Traders;
+
+                    _maxLLEventCount++;
+
+                    foreach (var Trader in Traders)
+                    {
+                        {
+                            Session.Profile.TradersInfo[Trader].SetStanding(Session.Profile.TradersInfo[Trader].Standing + 1);
+                        }
+                    }
+
+                    ConfigController.flags.traderRepFlag = true;
+                    JsonHandler.SaveToJson(ConfigController.flags, "TraderRep", "Flags");
+
+                    NotificationManagerClass.DisplayMessageNotification("Shopping Spree Event: All Traders have maxed out standing. Better get to them in the next ten minutes!", ENotificationDurationType.Default, ENotificationIconType.Mail);
+
+                    if (ConfigController.DebugConfig.DebugMode) {
+                        Utils.LogToServerConsole("Shopping Spree Event has started");
+                    }
+
+                    await Task.Delay(600000);
+
+                    foreach (var Trader in Traders)
+                    {
+                        {
+                            Session.Profile.TradersInfo[Trader].SetStanding(Session.Profile.TradersInfo[Trader].Standing - 1);
+                        }
+                    }
+
+                    ConfigController.flags.traderRepFlag = false;
+                    JsonHandler.SaveToJson(ConfigController.flags, "TraderRep", "Flags");
+
+                    NotificationManagerClass.DisplayMessageNotification("Shopping Spree Event: All Traders standing has been set back to normal. This is a fickle business after all.", ENotificationDurationType.Default, ENotificationIconType.Mail);
+
+                    if (ConfigController.DebugConfig.DebugMode) {
+                        Utils.LogToServerConsole("Shopping Spree Event has run");
+                    }
+                    
+                }
+
+                else if (ConfigController.flags.traderRepFlag)
+                {
+                    CorrectRep();
                 }
             }
 
-            NotificationManagerClass.DisplayMessageNotification("Shopping Spree Event: All Traders have maxed out standing. Better get to them in the next ten minutes!", ENotificationDurationType.Default, ENotificationIconType.Mail);
-
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
+            else
             {
-                Utils.LogToServerConsole("Shopping Spree Event has started");
+                Weighting.DoRandomEvent(Weighting.weightedEvents);
             }
-#endif  
+        }
 
-            await Task.Delay(600000);
+        public void CorrectRep()
+        {
+            FikaInterface.SendRandomEventPacket(Utils.CorrectRep);
 
-            foreach (var Trader in Traders)
+            if (JsonHandler.CheckFilePath("TraderRep", "Flags"))
             {
-                {
-                    Session.Profile.TradersInfo[Trader].SetStanding(Session.Profile.TradersInfo[Trader].Standing - 1);
+                JsonHandler.ReadFlagFile("TraderRep", "Flags");
+
+                if (ConfigController.flags.traderRepFlag)
+                {                    
+                    var Traders = Utils.Traders;
+
+                    foreach (var Trader in Traders)
+                    {
+                        {
+                            Session.Profile.TradersInfo[Trader].SetStanding(Session.Profile.TradersInfo[Trader].Standing - 1);
+                        }
+                    }
+
+                        ConfigController.flags.traderRepFlag = false;
+                        JsonHandler.SaveToJson(ConfigController.flags, "TraderRep", "Flags");
+                        Weighting.DoRandomEvent(Weighting.weightedEvents);
+                    
                 }
             }
-
-            NotificationManagerClass.DisplayMessageNotification("Shopping Spree Event: All Traders standing has been set back to normal. This is a fickle business after all.", ENotificationDurationType.Default, ENotificationIconType.Mail);
-
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
+            
+            else
             {
-                Utils.LogToServerConsole("Shopping Spree Event has run");
+                Weighting.DoRandomEvent(Weighting.weightedEvents);
             }
-#endif 
         }
 
         public async void DoLockDownEvent()
@@ -808,85 +854,240 @@ namespace ROStandalone.Controllers
 
             if (_exfilEventCount >= 1) { return; }
 
-            if (raidTimeLeft < 900)
+            FikaInterface.SendRandomEventPacket(Utils.Lockdown);
+
+            if (raidTimeLeft < 900 || ROPlayer.Location == "laboratory")
             {
                 Weighting.DoRandomEvent(Weighting.weightedEvents);
             }
 
             else
             {
-                NotificationManagerClass.DisplayMessageNotification("Lockdown Event: All extracts are unavaliable for 15 minutes", ENotificationDurationType.Long, ENotificationIconType.EntryPoint);
+                NotificationManagerClass.DisplayMessageNotification("Lockdown Event: All extracts are unavailable for 15 minutes", ENotificationDurationType.Long, ENotificationIconType.EntryPoint);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Lockdown Event has started");
-            }
-#endif  
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Lockdown Event has started");
+                }
 
                 EventExfilPatch.IsLockdown = true;
+                _exfilLockdown = true;
 
                 foreach (var exfil in exfils)
                 {
-                    exfil.Disable(AwaitsManualActivation);
+                    if (!exfil.Settings.Name.Contains("Elevator"))
+                    {
+                        foreach (var req in exfil.Requirements)
+                        {
+                            if (req.Requirement == ERequirementState.TransferItem && req.Requirement == ERequirementState.WorldEvent && req.Requirement == ERequirementState.ScavCooperation)
+                            {
+                                exfil.Disable(AwaitsManualActivation);
+                            }
+                        }
+                    }
                 }
                 _exfilEventCount++;
+
+                timeStart = System.DateTime.UtcNow.Second;
 
                 await Task.Delay(600000);
 
                 foreach (var exfil in exfils)
                 {
-                    exfil.Enable();
+                    if (!exfil.Settings.Name.Contains("Elevator"))
+                    {
+                        foreach (var req in exfil.Requirements)
+                        {
+                            if (req.Requirement == ERequirementState.TransferItem && req.Requirement == ERequirementState.WorldEvent && req.Requirement == ERequirementState.ScavCooperation)
+                            {
+                                exfil.Enable();
+                            }
+                        }
+                    }
                 }
+
+                EventExfilPatch.IsLockdown = false;
+                _exfilLockdown = false;
 
                 NotificationManagerClass.DisplayMessageNotification("Lockdown Event: Extracts are available again. Time to get out of there!", ENotificationDurationType.Long, ENotificationIconType.EntryPoint);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("Lockdown Event has run");
-            }
-#endif 
-
-                EventExfilPatch.IsLockdown = false;
-            }
-        }
-        #endregion
-
-        public void ExfilAirdropBOOMBOOM()
-        {
-            if (ROPlayer.Location != "factory4_day" && ROPlayer.Location != "factory4_night" && ROPlayer.Location != "laboratory" && ROPlayer.Location != "sandbox")
-            {
-                AirdropBoxPatch.isExtractCrate = true;
-                ROGameWorld.gameObject.AddComponent<AirdropsManager>().isFlareDrop = true;
-            }
-        }
-
-
-        public void FlareLogicEC()
-        {
-            var whiteFlareInHands = ROPlayer.HandsController.Item.TemplateId == _whiteFlare;
-
-            if (!whiteFlareInHands) { return; }
-
-            if (whiteFlareInHands && Ready())
-            {
-                if (Input.GetKeyDown(KeyCode.Mouse0) && _mouseInputCount < 1)
-                {
-                    _mouseInputCount++;
-                    ExfilAirdropBOOMBOOM();
-                    _eventisRunning = true;
-                    NotificationManagerClass.DisplayMessageNotification("Exfil Airdrop crate on it's way", ENotificationDurationType.Long, ENotificationIconType.EntryPoint);
-
-#if DEBUG
-                    if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-                    {
-                        Utils.LogToServerConsole("Exfil Airdrop crate on it's way");
-                    }
-#endif                      
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Lockdown Event has run");
                 }
             }
         }
+
+        public async void DoArtyEvent()
+        {
+            FikaInterface.SendRandomEventPacket(Utils.Artillery);
+
+            if (ROPlayer.Location != "factory4_day" && ROPlayer.Location != "factory4_night" && ROPlayer.Location != "laboratory" && !_artyEventHasRun)
+            {
+                NotificationManagerClass.DisplayMessageNotification("Artillery Event: Get to cover. Shelling will commence in 30 seconds", ENotificationDurationType.Long, ENotificationIconType.EntryPoint);
+
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("Artillery Event has started");
+                }
+
+                await Task.Delay(30000);
+
+                NotificationManagerClass.DisplayMessageNotification("Artillery Event: Shelling has started", ENotificationDurationType.Long, ENotificationIconType.EntryPoint);
+                
+                ROGameWorld.ServerShellingController?.StartShellingPosition(ROPlayer.Transform.position);
+            }
+
+            else
+            {
+                Weighting.DoRandomEvent(Weighting.weightedEvents);
+            }
+
+        }
+
+        public void FlareLogicTrain()
+        {
+            var trainFlareInHands = ROPlayer.HandsController.Item.TemplateId == Utils.trainFlare;
+
+            if (!trainFlareInHands) { return; }
+
+            if (trainFlareInHands && Ready())
+            {
+                if (Input.GetKeyDown(KeyCode.Mouse0) && _mouseInputCountT < 1)
+                {
+                    _mouseInputCountT++;
+                    RunTrain();
+                }
+            }
+        }
+
+        public async void RunTrain()
+        {
+            FikaInterface.SendRandomEventPacket(Utils.Train);
+            
+            await Task.Delay(3000);
+            Locomotive trainExfil = FindObjectOfType<Locomotive>();
+            if (trainExfil == null) { return; }
+
+            trainExfil?.Init(System.DateTime.UtcNow);
+            
+            NotificationManagerClass.DisplayMessageNotification("Train is arriving. Get out if you're ready!", ENotificationDurationType.Long, ENotificationIconType.EntryPoint);
+
+            if (ConfigController.DebugConfig.DebugMode) {
+                Utils.LogToServerConsole("Train is arriving");
+            }
+
+            await Task.Delay(420000);
+            
+            NotificationManagerClass.DisplayMessageNotification("Train is leaving the station.", ENotificationDurationType.Long, ENotificationIconType.EntryPoint);
+            
+            if (ConfigController.DebugConfig.DebugMode) {
+                Utils.LogToServerConsole("Train is leaving");
+            }
+
+            _mouseInputCountT = 0;
+        }
+
+        public void FlareLogicExfil()
+        {
+            var specialFlareInHands = ROPlayer.HandsController.Item.TemplateId == Utils.specialExfilFlare;
+
+            if (!specialFlareInHands) { return; }
+
+            if (specialFlareInHands && Ready())
+            {
+                if (Input.GetKeyDown(KeyCode.Mouse0) && _mouseInputCountE < 1)
+                {
+                    _mouseInputCountE++;
+                    DoPmcExfilEvent();
+                }
+            }
+        }
+
+        public async void DoPmcExfilEvent()
+        {
+            if (!_pmcExfilEventRunning)
+            {
+                FikaInterface.SendRandomEventPacket(Utils.PmcExfil);
+
+                _pmcExfilEventRunning = true;
+
+                await Task.Delay(3000);
+                NotificationManagerClass.DisplayMessageNotification("Extract is on it's way! Hold out for two minutes for help to arrive", ENotificationDurationType.Long, ENotificationIconType.EntryPoint);
+                await Task.Delay(120000);
+                NotificationManagerClass.DisplayMessageNotification("10", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("9", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("8", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("7", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("6", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("5", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("4", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("3", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("2", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("1", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+                await Task.Delay(1000);
+                NotificationManagerClass.DisplayMessageNotification("Help has arrived", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
+
+                EndByExitTrigerScenario.GInterface122 exfilSession = Singleton<AbstractGame>.Instance as EndByExitTrigerScenario.GInterface122;
+                exfilSession.StopSession(GamePlayerOwner.MyPlayer.ProfileId, ExitStatus.Survived, Singleton<GameWorld>.Instance.ExfiltrationController.ExfiltrationPoints.FirstOrDefault().name);
+
+                _pmcExfilEventRunning = false;
+                _mouseInputCountE = 0;
+            }
+        }
+
+        public void ExfilNow()
+        {
+            if (Ready())
+            {
+                EndByExitTrigerScenario.GInterface122 exfilSession = Singleton<AbstractGame>.Instance as EndByExitTrigerScenario.GInterface122;
+                exfilSession.StopSession(GamePlayerOwner.MyPlayer.ProfileId, ExitStatus.Survived, Singleton<GameWorld>.Instance.ExfiltrationController.ExfiltrationPoints.FirstOrDefault().name);
+            }
+        }
+/*
+        public async void DoGearExfilEvent()
+        {
+            var itemCrate = Singleton<ItemFactoryClass>.Instance.CreateItem("67cdb86dff473fb7786cdc9c", Utils.exfilCrate, null);
+            Utils.SpawnItem(itemCrate, ROPlayer);
+
+            NotificationManagerClass.DisplayMessageNotification("The extract crate is open, stash your loot while you can!", ENotificationDurationType.Long, ENotificationIconType.Default);
+
+            await Task.Delay(150000);
+
+            NotificationManagerClass.DisplayMessageNotification("The extract crate is locked, and any gear within it is now secured and will be returned to your stash at the end of the raid.", ENotificationDurationType.Long, ENotificationIconType.Default);
+
+            typeof(LootableContainer).GetMethod("Lock", BindingFlags.Instance | BindingFlags.Public).Invoke(itemCrate, null);
+            Utils.SendExfilBox(itemCrate);
+        }
+*/
+        public void CleanForNewEvent()
+        {
+            _pswitchs = null;
+            _keydoor = null;
+            _lamp = null;
+        }
+
+        public void CheckForFlag()
+        {
+            //Check flags and adjust accordingly
+            if (JsonHandler.CheckFilePath("TraderRep", "Flags"))
+            {
+                JsonHandler.ReadFlagFile("TraderRep", "Flags");
+
+                if (ConfigController.flags.traderRepFlag)
+                {
+                    CorrectRep();
+                }
+            }
+        }
+        #endregion
+        
         //
         //
         //

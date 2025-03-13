@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <Configuration>Release</Configuration>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Company>DJLang</Company>
+    <Copyright>Copyright @ DJ 2024</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ROStandalonePackets\Packets.csproj" />
+    <ProjectReference Include="..\ROStandalonePlugin\ROStandalone.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass ../build.ps1" WorkingDirectory="$(ProjectDir)" />
+  </Target>
+
+</Project>

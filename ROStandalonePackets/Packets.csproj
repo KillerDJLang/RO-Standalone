@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <AssemblyName>RaidOverhaulPackets</AssemblyName>
+    <Description>Fika Packets for Raid Overhaul</Description>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+  
+    <ItemGroup>
+        <Reference Include="Fika.Core">
+          <HintPath>..\..\..\BepInEx\plugins\Fika.Core.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+</Project>

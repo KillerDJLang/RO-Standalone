@@ -5,6 +5,7 @@ using BepInEx.Logging;
 using System;
 using System.Diagnostics;
 using UnityEngine;
+using ROStandalone.Helpers;
 
 namespace ROStandalone.Checkers
 {
@@ -14,10 +15,10 @@ namespace ROStandalone.Checkers
         public static bool CheckEftVersion(ManualLogSource Logger, PluginInfo Info, ConfigFile Config = null)
         {
             int currentVersion = FileVersionInfo.GetVersionInfo(BepInEx.Paths.ExecutablePath).FilePrivatePart;
-            int buildVersion = Plugin.TarkovVersion;
+            int buildVersion = ClientInfo.TarkovVersion;
             if (currentVersion != buildVersion)
             {
-                string errorMessage = $"ERROR: This version of Raid Overhaul Standalone {Plugin.PluginVersion} was built for Tarkov {buildVersion}, but you are running {currentVersion}. Please download the correct plugin version.";
+                string errorMessage = $"ERROR: This version of Raid Overhaul Standalone {ClientInfo.PluginVersion} was built for Tarkov {buildVersion}, but you are running {currentVersion}. Please download the correct plugin version.";
                 Logger.LogError(errorMessage);
                 Chainloader.DependencyErrors.Add(errorMessage);
 

@@ -1,11 +1,11 @@
 {
     "name": "RO Standalone",
-    "version": "1.1.0",
-    "main": "src/ROcore.js",
+    "version": "1.2.0",
+    "main": "src/mod.js",
     "isBundleMod": false,
     "license": "CC BY-NC-ND 4.0",
     "author": "DJ",
-    "sptVersion": "~3.9",
+    "sptVersion": "~3.10",
     "loadBefore": [],
     "loadAfter": [],
     "incompatibilities": ["RaidOverhaul"],
@@ -17,7 +17,7 @@
         "format": "npx @biomejs/biome check --write ./"
     },
     "devDependencies": {
-        "@biomejs/biome": "1.9.0",
+        "@biomejs/biome": "1.8.3",
         "@types/node": "20.11",
         "@typescript-eslint/eslint-plugin": "7.2",
         "@typescript-eslint/parser": "7.2",

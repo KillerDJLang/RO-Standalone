@@ -1,0 +1,11 @@
+/ROBuild/bin/
+/ROBuild/obj/
+/ROPlugin/bin/
+/ROPlugin/obj/
+/ROPrepatch/bin/
+/ROPrepatch/obj/
+/RaidOverhaul/node_modules/
+/RaidOverhaul/types/
+/RaidOverhaul/tsconfig.json
+/RaidOverhaul/package-lock.json
+/Build/

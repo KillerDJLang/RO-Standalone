@@ -6,6 +6,8 @@ using EFT.Communications;
 using System.Reflection;
 using System.Collections;
 using ROStandalone.Helpers;
+using ROStandalone.Configs;
+using ROStandalone.Fika;
 
 namespace ROStandalone.Controllers
 {
@@ -46,19 +48,21 @@ namespace ROStandalone.Controllers
                 _kdoor = FindObjectsOfType<KeycardDoor>();
             }
 
-            if (!_dooreventisRunning)
+            if (!_dooreventisRunning && FikaInterface.IAmHost())
             {
                 StaticManager.Instance.StartCoroutine(DoorEvents());
 
                 _dooreventisRunning = true;
             }
+
+
         }
 
         private IEnumerator DoorEvents()
         {
             yield return new WaitForSeconds(UnityEngine.Random.Range(ConfigController.EventConfig.DoorEventRangeMinimumServer, ConfigController.EventConfig.DoorEventRangeMaximumServer) * 60f);
 
-            if (Plugin.ROGameWorld != null && Plugin.ROGameWorld.AllAlivePlayersList != null && Plugin.ROGameWorld.AllAlivePlayersList.Count > 0 && !(Plugin.ROPlayer is HideoutPlayer))
+            if (Plugin.ROGameWorld != null && Plugin.ROGameWorld.AllAlivePlayersList != null && Plugin.ROGameWorld.AllAlivePlayersList.Count > 0 && !(Plugin.ROPlayer is HideoutPlayer) && FikaInterface.IAmHost())
             {
                 Weighting.DoRandomEvent(Weighting.weightedDoorMethods);
             }
@@ -80,17 +84,17 @@ namespace ROStandalone.Controllers
         {
             if (Plugin.ROPlayer.Location != "laboratory" && Plugin.ROPlayer.Location != "rezervbase" && Plugin.ROPlayer.Location != "bigmap" && Plugin.ROPlayer.Location != "interchange")
             {
-#if DEBUG
-                Plugin.Log.LogInfo("No switches available on this map, returning.");
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Plugin.Log.LogInfo("No switches available on this map, returning.");
+                }
                 return;
             }
 
             if (_switchs == null || _switchs.Length <= 0)
             {
-#if DEBUG
-                Plugin.Log.LogInfo("No switches left to open, returning.");
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Plugin.Log.LogInfo("No switches left to open, returning.");
+                }
                 return;
             }
 
@@ -101,14 +105,12 @@ namespace ROStandalone.Controllers
 
             if (_switch.DoorState == EDoorState.Shut)
             {
+                FikaInterface.SendSwitchStateChangePacket(_switch.Id);
                 typeof(Switch).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(_switch, null);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("A random switch has been thrown.");
-            }
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("A random switch has been thrown.");
+                }
 
                 RemoveAt(ref _switchs, selection);
             }
@@ -123,9 +125,9 @@ namespace ROStandalone.Controllers
         {
             if (_door == null || _door.Length <= 0)
             {
-#if DEBUG
-                Plugin.Log.LogInfo("No locked doors available, returning.");
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Plugin.Log.LogInfo("No locked doors available, returning.");
+                }
                 return;
             }
 
@@ -136,23 +138,21 @@ namespace ROStandalone.Controllers
 
             if (door.gameObject.layer != LayerMaskClass.InteractiveLayer)
             {
-#if DEBUG
-                Plugin.Log.LogInfo("Chosen door isn't on the interactive layer, returning.");
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Plugin.Log.LogInfo("Chosen door isn't on the interactive layer, returning.");
+                }
                 return;
             }
 
             if (door.DoorState == EDoorState.Locked && door.Operatable && door.enabled)
             {
+                FikaInterface.SendDoorStateChangePacket(door.Id);
                 typeof(Door).GetMethod("Unlock", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
                 typeof(Door).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("A random door has been unlocked.");
-            }
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("A random door has been unlocked.");
+                }
 
                 RemoveAt(ref _door, selection);
             }
@@ -167,17 +167,17 @@ namespace ROStandalone.Controllers
         {
             if (Plugin.ROPlayer.Location != "laboratory" && Plugin.ROPlayer.Location != "interchange")
             {
-#if DEBUG
-                Plugin.Log.LogInfo("No keycard doors available on this map, returning.");
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Plugin.Log.LogInfo("No keycard doors available on this map, returning.");
+                }
                 return;
             }
 
             if (_kdoor == null || _kdoor.Length <= 0)
             {
-#if DEBUG
-                Plugin.Log.LogInfo("No keycard doors left to open, returning.");
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Plugin.Log.LogInfo("No keycard doors left to open, returning.");
+                }
                 return;
             }
 
@@ -188,15 +188,13 @@ namespace ROStandalone.Controllers
 
             if (kdoor.DoorState == EDoorState.Locked)
             {
+                FikaInterface.SendKeycardDoorStateChangePacket(kdoor.Id);
                 typeof(KeycardDoor).GetMethod("Unlock", BindingFlags.Instance | BindingFlags.Public).Invoke(kdoor, null);
                 typeof(KeycardDoor).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(kdoor, null);
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                Utils.LogToServerConsole("A random keycard door has been unlocked.");
-            }
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    Utils.LogToServerConsole("A random keycard door has been unlocked.");
+                }
 
                 RemoveAt(ref _kdoor, selection);
             }
@@ -206,7 +204,6 @@ namespace ROStandalone.Controllers
                 RemoveAt(ref _door, selection);
             }
         }
-
         #endregion
 
         #region Random Raid Start Events
@@ -244,24 +241,23 @@ namespace ROStandalone.Controllers
 
                     if (UnityEngine.Random.Range(0, 100) < 50 && (door.DoorState == EDoorState.Shut))
                     {
+                        FikaInterface.SendRaidStartDoorStateChangePacket(door.Id);
                         typeof(Door).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
                         _doorChangedCount++;
                     }
 
                     if (UnityEngine.Random.Range(0, 100) < 50 && (door.DoorState == EDoorState.Open))
                     {
+                        FikaInterface.SendRaidStartDoorStateChangePacket(door.Id);
                         typeof(Door).GetMethod("Close", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
                         _doorChangedCount++;
                     }
                 });
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                NotificationManagerClass.DisplayMessageNotification($"[{_doorChangedCount}] total Doors have had their states changed. [{_doorNotChangedCount}] haven't been modified.", ENotificationDurationType.Long, ENotificationIconType.Default);
-                Utils.LogToServerConsole($"[{_doorChangedCount}] total Doors have had their states changed. [{_doorNotChangedCount}] haven't been modified.");
-            }
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    NotificationManagerClass.DisplayMessageNotification($"[{_doorChangedCount}] total Doors have had their states changed. [{_doorNotChangedCount}] haven't been modified.", ENotificationDurationType.Long, ENotificationIconType.Default);
+                    Utils.LogToServerConsole($"[{_doorChangedCount}] total Doors have had their states changed. [{_doorNotChangedCount}] haven't been modified.");
+                }
             }
         }
 
@@ -273,22 +269,19 @@ namespace ROStandalone.Controllers
                 {
                     if (UnityEngine.Random.Range(0, 100) < 25)
                     {
+                        FikaInterface.SendRaidStartLampStateChangePacket(lamp.Id);
                         lamp.Switch(Turnable.EState.Off);
                         lamp.enabled = false;
                         _lampCount++;
                     }
                 });
 
-#if DEBUG
-            if (ConfigController.ServerConfig.Debug.EnableExtraDebugLogging)
-            {
-                NotificationManagerClass.DisplayMessageNotification($"[{_lampCount}] total Lamps have been modified.", ENotificationDurationType.Long, ENotificationIconType.Default);
-                Utils.LogToServerConsole($"[{_lampCount}] total Lamps have been modified.");
-            }
-#endif
+                if (ConfigController.DebugConfig.DebugMode) {
+                    NotificationManagerClass.DisplayMessageNotification($"[{_lampCount}] total Lamps have been modified.", ENotificationDurationType.Long, ENotificationIconType.Default);
+                    Utils.LogToServerConsole($"[{_lampCount}] total Lamps have been modified.");
+                }
             }
         }
-
         #endregion
 
         static void RemoveAt<T>(ref T[] array, int index)

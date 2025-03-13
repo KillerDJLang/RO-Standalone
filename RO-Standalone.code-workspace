@@ -1,0 +1,36 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"window.title": "DJ - Raid Overhaul Standalone",
+        "editor.formatOnSave": false,
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports.biome": "explicit",
+            "quickfix.biome": "explicit"
+        }
+	},
+	"extensions": {
+		"recommendations": [
+            "refringe.spt-id-highlighter",
+            "biomejs.biome"
+		]
+	},
+	"tasks":{
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "build",
+				"type": "shell",
+				"command": "dotnet build --configuration Release",
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				}
+			}
+		]
+	}
+}

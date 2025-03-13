@@ -31,6 +31,7 @@ namespace ROStandalone.Helpers
             "5c0647fdd443bc2504c2d371"      //Jaeger
         };
         
+        public static readonly string MainROKey = "DJ.RaidOverhaul";
         public static readonly string specialExfilFlare = "67cda57f8f59300db5c0ec5b";
         public static readonly string trainFlare = "67cde31eea2d15e888fa7dee";
         public static readonly string redFlare = "624c09cfbc2e27219346d955";
@@ -70,7 +71,8 @@ namespace ROStandalone.Helpers
 
         public static void LogToServerConsole(string message) {
             Plugin.Log.Log( LogLevel.Info, message);
-            RequestHandler.GetJson("/ROStandaloneBackend/LogToServer/" + message);
+            string info = JsonConvert.SerializeObject(message);
+            RequestHandler.PostJson("/ROStandaloneBackend/LogToServer", info);
         }
 
         public static void GetWeatherFields()

@@ -1,4 +1,5 @@
 using EFT;
+using EFT.UI;
 using Comfort.Common;
 using System;
 using System.IO;
@@ -41,6 +42,7 @@ namespace ROStandalone
         { get => ROGameWorld.MainPlayer.Skills; }
 
         public static bool fikaDetected { get; private set; }
+        public static bool mainRODetected { get; private set; }
         public static bool dedicatedClientDetected { get; private set; }
 
 
@@ -101,6 +103,14 @@ namespace ROStandalone
 
         void Update()
         {
+            if (Chainloader.PluginInfos.ContainsKey(Utils.MainROKey) && PreloaderUI.Instantiated) {
+                if (GameObject.Find("ErrorScreen"))
+                    PreloaderUI.Instance.CloseErrorScreen();
+
+                PreloaderUI.Instance.ShowErrorScreen("Raid Overhaul Standalone Error", "Raid Overhaul Standalone is not compatible with Raid Overhaul. Install only one of the mods or errors will occur.");
+                mainRODetected = true;
+            }
+
             if (Session == null && ClientAppUtils.GetMainApp().GetClientBackEndSession() != null)
             {
                 Session = ClientAppUtils.GetMainApp().GetClientBackEndSession();

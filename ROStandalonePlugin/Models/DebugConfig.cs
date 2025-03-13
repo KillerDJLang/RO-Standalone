@@ -7,9 +7,6 @@ namespace ROStandalone.Models
         [JsonProperty("debugMode")]
         public bool DebugMode;
 
-        [JsonProperty("dumpData")]
-        public bool DumpData;
-
         [JsonProperty("EnableTimeChanges")]
         public bool TimeChanges;
     }

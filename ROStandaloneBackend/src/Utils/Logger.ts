@@ -11,7 +11,7 @@ import JSON5 from "json5";
 
 @injectable()
 export class ROLogger {
-    private logPrefix = "[Raid Overhaul] ";
+    private logPrefix = "[Raid Overhaul Standalone] ";
 
     constructor(
         @inject("VFS") protected vfs: VFS,

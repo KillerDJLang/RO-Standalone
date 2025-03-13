@@ -52,7 +52,6 @@ namespace ROStandalone.Controllers
         private int _maxLLEventCount = 0;
         private int _exfilEventCount = 0;
 
-        public static int timeStart;
         public static int _mouseInputCountT = 0;
         public static int _mouseInputCountE = 0;
 
@@ -886,8 +885,6 @@ namespace ROStandalone.Controllers
                     }
                 }
                 _exfilEventCount++;
-
-                timeStart = System.DateTime.UtcNow.Second;
 
                 await Task.Delay(600000);
 

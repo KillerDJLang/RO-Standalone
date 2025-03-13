@@ -29,6 +29,5 @@ export interface seasonalProgression {
 
 export interface debugFile {
     debugMode: boolean;
-    dumpData: boolean;
     EnableTimeChanges: boolean;
 }

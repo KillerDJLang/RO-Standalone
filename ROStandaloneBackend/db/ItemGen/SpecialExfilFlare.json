@@ -11,6 +11,9 @@
             "HandbookParent": "SpecialWeapons",
             "HandbookPrice": 499999
         },
+        "SlotPush": {
+            "Slot": 2
+        },
         "CloneToFilters": true
     }
 }

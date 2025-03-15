@@ -1,3 +1,4 @@
+/*
 using LiteNetLib.Utils;
 
 namespace ROStandalone.Packets
@@ -92,3 +93,4 @@ namespace ROStandalone.Packets
         }
     }
 }
+*/

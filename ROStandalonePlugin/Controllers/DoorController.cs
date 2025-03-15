@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Collections;
 using ROStandalone.Helpers;
 using ROStandalone.Configs;
-using ROStandalone.Fika;
+//using ROStandalone.Fika;
 
 namespace ROStandalone.Controllers
 {
@@ -48,7 +48,7 @@ namespace ROStandalone.Controllers
                 _kdoor = FindObjectsOfType<KeycardDoor>();
             }
 
-            if (!_dooreventisRunning && FikaInterface.IAmHost())
+            if (!_dooreventisRunning) // && FikaInterface.IAmHost()
             {
                 StaticManager.Instance.StartCoroutine(DoorEvents());
 
@@ -62,7 +62,7 @@ namespace ROStandalone.Controllers
         {
             yield return new WaitForSeconds(UnityEngine.Random.Range(ConfigController.EventConfig.DoorEventRangeMinimumServer, ConfigController.EventConfig.DoorEventRangeMaximumServer) * 60f);
 
-            if (Plugin.ROGameWorld != null && Plugin.ROGameWorld.AllAlivePlayersList != null && Plugin.ROGameWorld.AllAlivePlayersList.Count > 0 && !(Plugin.ROPlayer is HideoutPlayer) && FikaInterface.IAmHost())
+            if (Plugin.ROGameWorld != null && Plugin.ROGameWorld.AllAlivePlayersList != null && Plugin.ROGameWorld.AllAlivePlayersList.Count > 0 && !(Plugin.ROPlayer is HideoutPlayer)) // && FikaInterface.IAmHost()
             {
                 Weighting.DoRandomEvent(Weighting.weightedDoorMethods);
             }
@@ -105,7 +105,7 @@ namespace ROStandalone.Controllers
 
             if (_switch.DoorState == EDoorState.Shut)
             {
-                FikaInterface.SendSwitchStateChangePacket(_switch.Id);
+                //FikaInterface.SendSwitchStateChangePacket(_switch.Id);
                 typeof(Switch).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(_switch, null);
 
                 if (ConfigController.DebugConfig.DebugMode) {
@@ -146,7 +146,7 @@ namespace ROStandalone.Controllers
 
             if (door.DoorState == EDoorState.Locked && door.Operatable && door.enabled)
             {
-                FikaInterface.SendDoorStateChangePacket(door.Id);
+                //FikaInterface.SendDoorStateChangePacket(door.Id);
                 typeof(Door).GetMethod("Unlock", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
                 typeof(Door).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
 
@@ -188,7 +188,7 @@ namespace ROStandalone.Controllers
 
             if (kdoor.DoorState == EDoorState.Locked)
             {
-                FikaInterface.SendKeycardDoorStateChangePacket(kdoor.Id);
+                //FikaInterface.SendKeycardDoorStateChangePacket(kdoor.Id);
                 typeof(KeycardDoor).GetMethod("Unlock", BindingFlags.Instance | BindingFlags.Public).Invoke(kdoor, null);
                 typeof(KeycardDoor).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(kdoor, null);
 
@@ -241,14 +241,14 @@ namespace ROStandalone.Controllers
 
                     if (UnityEngine.Random.Range(0, 100) < 50 && (door.DoorState == EDoorState.Shut))
                     {
-                        FikaInterface.SendRaidStartDoorStateChangePacket(door.Id);
+                        //FikaInterface.SendRaidStartDoorStateChangePacket(door.Id);
                         typeof(Door).GetMethod("Open", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
                         _doorChangedCount++;
                     }
 
                     if (UnityEngine.Random.Range(0, 100) < 50 && (door.DoorState == EDoorState.Open))
                     {
-                        FikaInterface.SendRaidStartDoorStateChangePacket(door.Id);
+                        //FikaInterface.SendRaidStartDoorStateChangePacket(door.Id);
                         typeof(Door).GetMethod("Close", BindingFlags.Instance | BindingFlags.Public).Invoke(door, null);
                         _doorChangedCount++;
                     }
@@ -269,7 +269,7 @@ namespace ROStandalone.Controllers
                 {
                     if (UnityEngine.Random.Range(0, 100) < 25)
                     {
-                        FikaInterface.SendRaidStartLampStateChangePacket(lamp.Id);
+                        //FikaInterface.SendRaidStartLampStateChangePacket(lamp.Id);
                         lamp.Switch(Turnable.EState.Off);
                         lamp.enabled = false;
                         _lampCount++;

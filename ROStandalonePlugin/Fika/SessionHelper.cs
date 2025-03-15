@@ -1,3 +1,4 @@
+/*
 using Comfort.Common;
 using EFT;
 using EFT.Interactive;
@@ -70,3 +71,4 @@ namespace ROStandalone.Fika
         }
     }
 }
+*/

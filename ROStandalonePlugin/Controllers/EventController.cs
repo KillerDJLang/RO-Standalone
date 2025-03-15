@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 using ROStandalone.Helpers;
 using ROStandalone.Patches;
 using ROStandalone.Configs;
-using ROStandalone.Fika;
+//using ROStandalone.Fika;
 
 
 using static ROStandalone.Plugin;
@@ -130,7 +130,7 @@ namespace ROStandalone.Controllers
             }
 
 
-            if (!_eventIsRunning && FikaInterface.IAmHost())
+            if (!_eventIsRunning) // && FikaInterface.IAmHost()
             {
                 StaticManager.Instance.StartCoroutine(StartEvents());
 
@@ -211,7 +211,7 @@ namespace ROStandalone.Controllers
         {
             if (_healthEventCount >= 2) { return; }
 
-            FikaInterface.SendRandomEventPacket(Utils.Heal);
+            //FikaInterface.SendRandomEventPacket(Utils.Heal);
 
             NotificationManagerClass.DisplayMessageNotification("Heal Event: On your feet you ain't dead yet.", ENotificationDurationType.Long, ENotificationIconType.Default);
             ROPlayer.ActiveHealthController.RestoreFullHealth();
@@ -226,7 +226,7 @@ namespace ROStandalone.Controllers
         {
             if (_damageEventCount >= 1) { return; }
 
-            FikaInterface.SendRandomEventPacket(Utils.Damage);
+            //FikaInterface.SendRandomEventPacket(Utils.Damage);
 
             NotificationManagerClass.DisplayMessageNotification("Heart Attack Event: Better get to a medic quick, you don't have long left.", ENotificationDurationType.Long, ENotificationIconType.Alert);
             ROPlayer.ActiveHealthController.DoContusion(4f, 50f);
@@ -244,7 +244,7 @@ namespace ROStandalone.Controllers
         {
             if (_repairEventCount >= 2) { return; }
 
-            FikaInterface.SendRandomEventPacket(Utils.Repair);
+            //FikaInterface.SendRandomEventPacket(Utils.Repair);
 
             NotificationManagerClass.DisplayMessageNotification("Armor Repair Event: All equipped armor repaired... nice!", ENotificationDurationType.Long, ENotificationIconType.Default);
             ROPlayer.Profile.Inventory.GetPlayerItems().ExecuteForEach((item) =>
@@ -287,7 +287,7 @@ namespace ROStandalone.Controllers
         {
             if (!_jokeEventHasRun)
             {
-                FikaInterface.SendRandomEventPacket(Utils.Jokes);
+                //FikaInterface.SendRandomEventPacket(Utils.Jokes);
 
                 NotificationManagerClass.DisplayMessageNotification("Heart Attack Event: Nice knowing ya, you've got 10 seconds", ENotificationDurationType.Long, ENotificationIconType.Alert);
 
@@ -314,7 +314,7 @@ namespace ROStandalone.Controllers
 
         public async void DoBlackoutEvent()
         {
-                FikaInterface.SendRandomEventPacket(Utils.Blackout);
+                //FikaInterface.SendRandomEventPacket(Utils.Blackout);
 
                 foreach (Switch pSwitch in _pswitchs)
                 {
@@ -367,7 +367,7 @@ namespace ROStandalone.Controllers
         {
             if (_skillEventCount >= 3) { return; }
 
-                FikaInterface.SendRandomEventPacket(Utils.Skill);
+                //FikaInterface.SendRandomEventPacket(Utils.Skill);
 
                 System.Random random = new System.Random();
 
@@ -406,7 +406,7 @@ namespace ROStandalone.Controllers
         {
             if (!_metabolismDisabled)
             {
-                FikaInterface.SendRandomEventPacket(Utils.Metabolism);
+                //FikaInterface.SendRandomEventPacket(Utils.Metabolism);
 
                 System.Random random = new System.Random();
                 int chance = random.Next(0, 100 + 1);
@@ -457,7 +457,7 @@ namespace ROStandalone.Controllers
 
             if (!_malfEventHasRun)
             {
-                FikaInterface.SendRandomEventPacket(Utils.Malf);
+                //FikaInterface.SendRandomEventPacket(Utils.Malf);
 
                 _malfEventHasRun = true;
 
@@ -524,7 +524,7 @@ namespace ROStandalone.Controllers
 
         public void DoLLEvent()
         {
-            FikaInterface.SendRandomEventPacket(Utils.LoyaltyLevel);
+            //FikaInterface.SendRandomEventPacket(Utils.LoyaltyLevel);
 
             System.Random random = new System.Random();
 
@@ -566,7 +566,7 @@ namespace ROStandalone.Controllers
 
             if (!_berserkEventHasRun)
             {
-                FikaInterface.SendRandomEventPacket(Utils.Berserk);
+                //FikaInterface.SendRandomEventPacket(Utils.Berserk);
 
                 _berserkEventHasRun = true;
 
@@ -661,7 +661,7 @@ namespace ROStandalone.Controllers
 
             if (!_weightEventHasRun)
             {
-                FikaInterface.SendRandomEventPacket(Utils.Weight);
+                //FikaInterface.SendRandomEventPacket(Utils.Weight);
 
                 _weightEventHasRun = true;
 
@@ -752,7 +752,7 @@ namespace ROStandalone.Controllers
             {
                 JsonHandler.ReadFlagFile("TraderRep", "Flags");
 
-                FikaInterface.SendRandomEventPacket(Utils.MaxLoyaltyLevel);
+                //FikaInterface.SendRandomEventPacket(Utils.MaxLoyaltyLevel);
 
                 if (!ConfigController.flags.traderRepFlag)
                 {
@@ -816,7 +816,7 @@ namespace ROStandalone.Controllers
 
         public void CorrectRep()
         {
-            FikaInterface.SendRandomEventPacket(Utils.CorrectRep);
+            //FikaInterface.SendRandomEventPacket(Utils.CorrectRep);
 
             if (JsonHandler.CheckFilePath("TraderRep", "Flags"))
             {
@@ -853,7 +853,7 @@ namespace ROStandalone.Controllers
 
             if (_exfilEventCount >= 1) { return; }
 
-            FikaInterface.SendRandomEventPacket(Utils.Lockdown);
+            //FikaInterface.SendRandomEventPacket(Utils.Lockdown);
 
             if (raidTimeLeft < 900 || ROPlayer.Location == "laboratory")
             {
@@ -915,7 +915,7 @@ namespace ROStandalone.Controllers
 
         public async void DoArtyEvent()
         {
-            FikaInterface.SendRandomEventPacket(Utils.Artillery);
+            //FikaInterface.SendRandomEventPacket(Utils.Artillery);
 
             if (ROPlayer.Location != "factory4_day" && ROPlayer.Location != "factory4_night" && ROPlayer.Location != "laboratory" && !_artyEventHasRun)
             {
@@ -957,7 +957,7 @@ namespace ROStandalone.Controllers
 
         public async void RunTrain()
         {
-            FikaInterface.SendRandomEventPacket(Utils.Train);
+            //FikaInterface.SendRandomEventPacket(Utils.Train);
             
             await Task.Delay(3000);
             Locomotive trainExfil = FindObjectOfType<Locomotive>();
@@ -1002,7 +1002,7 @@ namespace ROStandalone.Controllers
         {
             if (!_pmcExfilEventRunning)
             {
-                FikaInterface.SendRandomEventPacket(Utils.PmcExfil);
+                //FikaInterface.SendRandomEventPacket(Utils.PmcExfil);
 
                 _pmcExfilEventRunning = true;
 
@@ -1031,7 +1031,7 @@ namespace ROStandalone.Controllers
                 await Task.Delay(1000);
                 NotificationManagerClass.DisplayMessageNotification("Help has arrived", ENotificationDurationType.Default, ENotificationIconType.EntryPoint);
 
-                EndByExitTrigerScenario.GInterface122 exfilSession = Singleton<AbstractGame>.Instance as EndByExitTrigerScenario.GInterface122;
+                EndByExitTrigerScenario.GInterface129 exfilSession = Singleton<AbstractGame>.Instance as EndByExitTrigerScenario.GInterface129;
                 exfilSession.StopSession(GamePlayerOwner.MyPlayer.ProfileId, ExitStatus.Survived, Singleton<GameWorld>.Instance.ExfiltrationController.ExfiltrationPoints.FirstOrDefault().name);
 
                 _pmcExfilEventRunning = false;
@@ -1043,7 +1043,7 @@ namespace ROStandalone.Controllers
         {
             if (Ready())
             {
-                EndByExitTrigerScenario.GInterface122 exfilSession = Singleton<AbstractGame>.Instance as EndByExitTrigerScenario.GInterface122;
+                EndByExitTrigerScenario.GInterface129 exfilSession = Singleton<AbstractGame>.Instance as EndByExitTrigerScenario.GInterface129;
                 exfilSession.StopSession(GamePlayerOwner.MyPlayer.ProfileId, ExitStatus.Survived, Singleton<GameWorld>.Instance.ExfiltrationController.ExfiltrationPoints.FirstOrDefault().name);
             }
         }

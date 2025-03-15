@@ -1,8 +1,8 @@
 import { inject, injectable } from "tsyringe";
 //Spt Classes
 import { LogTextColor } from "@spt/models/spt/logging/LogTextColor";
+import type { FileSystemSync } from "@spt/utils/FileSystemSync";
 import { ILogger } from "@spt/models/spt/utils/ILogger";
-import type { VFS } from "@spt/utils/VFS";
 //Custom Classes
 import type { debugFile } from "../models/Interfaces";
 //Modules
@@ -14,8 +14,8 @@ export class ROLogger {
     private logPrefix = "[Raid Overhaul Standalone] ";
 
     constructor(
-        @inject("VFS") protected vfs: VFS,
         @inject("WinstonLogger") protected logger: ILogger,
+        @inject("FileSystemSync") protected sptFs: FileSystemSync,
     ) {}
 
     public log(text: string, textColor?: LogTextColor) {
@@ -36,7 +36,7 @@ export class ROLogger {
 
     public logDebug(text: string) {
         const debugConfig = JSON5.parse(
-            this.vfs.readFile(path.resolve(__dirname, "./Data/debugOptions.json5")),
+            this.sptFs.read(path.resolve(__dirname, "./Data/debugOptions.json5")),
         ) as debugFile;
 
         if (debugConfig.debugMode) {

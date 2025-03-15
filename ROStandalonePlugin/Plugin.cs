@@ -3,13 +3,14 @@ using EFT.UI;
 using Comfort.Common;
 using System;
 using System.IO;
+using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Bootstrap;
 using UnityEngine;
 using SPT.Reflection.Utils;
 
-using ROStandalone.Fika;
+//using ROStandalone.Fika;
 using ROStandalone.Models;
 using ROStandalone.Helpers;
 using ROStandalone.Patches;
@@ -19,12 +20,14 @@ using ROStandalone.Controllers;
 
 namespace ROStandalone
 {
+    [BepInDependency("com.fika.core", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(ClientInfo.ROGUID, ClientInfo.ROSPluginName, ClientInfo.PluginVersion)]
 
     public class Plugin : BaseUnityPlugin
     {
         public static string pluginPath = Path.Combine(Environment.CurrentDirectory, "BepInEx", "plugins", "RaidOverhaulStandalone");
         public static string resourcePath = Path.Combine(pluginPath, "Resources");
+        public static List<string> SoftDependancies = ["com.fika.core"];
         internal static GameObject Hook;
         internal static EventController ECScript;
         internal static DoorController DCScript;
@@ -121,7 +124,7 @@ namespace ROStandalone
 
         private void OnEnable()
         {
-            FikaInterface.InitOnPluginEnabled();
+            //FikaInterface.InitOnPluginEnabled();
         }
     }
 }

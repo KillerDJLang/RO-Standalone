@@ -1,6 +1,6 @@
 import { inject, injectable } from "tsyringe";
 //Spt Classes
-import type { VFS } from "@spt/utils/VFS";
+import type { FileSystemSync } from "@spt/utils/FileSystemSync";
 //Custom Classes
 import type { configFile, debugFile, seasonalProgression } from "../models/Interfaces";
 //Modules
@@ -9,7 +9,7 @@ import JSON5 from "json5";
 
 @injectable()
 export class ConfigManager {
-    constructor(@inject("VFS") protected vfs: VFS) {}
+    constructor(@inject("FileSystemSync") protected sptFs: FileSystemSync) {}
 
     /**
      * Parses the main mod config using the configFile interface.
@@ -18,7 +18,7 @@ export class ConfigManager {
      */
     public modConfig(): configFile {
         const modConfig = JSON5.parse(
-            this.vfs.readFile(path.resolve(__dirname, "../../config/config.json5")),
+            this.sptFs.read(path.resolve(__dirname, "../../config/config.json5")),
         ) as configFile;
 
         return modConfig;
@@ -31,7 +31,7 @@ export class ConfigManager {
      */
     public debugConfig(): debugFile {
         const debugConfig = JSON5.parse(
-            this.vfs.readFile(path.resolve(__dirname, "../utils/data/debugOptions.json5")),
+            this.sptFs.read(path.resolve(__dirname, "../utils/data/debugOptions.json5")),
         ) as debugFile;
 
         return debugConfig;
@@ -44,7 +44,7 @@ export class ConfigManager {
      */
     public seasonProgressionFile(): seasonalProgression {
         const seasonalProgressionFile = JSON5.parse(
-            this.vfs.readFile(path.resolve(__dirname, `../utils/data/seasonsProgressionFile.json5`)),
+            this.sptFs.read(path.resolve(__dirname, `../utils/data/seasonsProgressionFile.json5`)),
         ) as seasonalProgression;
 
         return seasonalProgressionFile;

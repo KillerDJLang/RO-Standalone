@@ -2,8 +2,8 @@
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using System;
 using UnityEngine;
+using System;
 
 namespace ROStandalone.Checkers
 {
@@ -25,10 +25,17 @@ namespace ROStandalone.Checkers
 
             foreach (var dependency in dependencies)
             {
+
                 PluginInfo pluginInfo;
                 if (!Chainloader.PluginInfos.TryGetValue(dependency.DependencyGUID, out pluginInfo))
                 {
                     pluginInfo = null;
+                }
+
+                foreach (var softDependancy in Plugin.SoftDependancies)
+                {
+                    if (dependency.DependencyGUID == softDependancy) { return true; }
+                    else { continue; }
                 }
 
                 // If the plugin isn't found, or the instance isn't enabled, it means the required plugin failed to load

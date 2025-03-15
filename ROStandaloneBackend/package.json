@@ -1,11 +1,11 @@
 {
     "name": "RO Standalone",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "main": "src/mod.js",
     "isBundleMod": false,
     "license": "CC BY-NC-ND 4.0",
     "author": "DJ",
-    "sptVersion": "~3.10",
+    "sptVersion": "~3.11",
     "loadBefore": [],
     "loadAfter": [],
     "incompatibilities": ["RaidOverhaul"],

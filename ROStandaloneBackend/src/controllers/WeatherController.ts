@@ -6,7 +6,6 @@ import { ConfigTypes } from "@spt/models/enums/ConfigTypes";
 import type { ConfigServer } from "@spt/servers/ConfigServer";
 import type { RandomUtil } from "@spt/utils/RandomUtil";
 import { Season } from "@spt/models/enums/Season";
-import type { VFS } from "@spt/utils/VFS";
 //Custom Classes
 import type { seasonalProgression } from "../models/Interfaces";
 import type { ConfigManager } from "../managers/ConfigManager";
@@ -20,7 +19,6 @@ import JSON5 from "json5";
 export class ROWeatherController {
     constructor(
         @inject("ROLogger") protected logger: ROLogger,
-        @inject("VFS") protected vfs: VFS,
         @inject("ConfigManager") protected configManager: ConfigManager,
         @inject("RandomUtil") protected randomUtil: RandomUtil,
         @inject("ConfigServer") protected configServer: ConfigServer,
